@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:bbtml_new/main.dart';
+import 'package:bbtml_new/screens/bbtm_screens/view/home_screen.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/qr/generate_qr.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/routers/router_page.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/settings.dart';
@@ -8,10 +10,10 @@ import 'package:bbtml_new/screens/switches/switch_page_cloud.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../controllers/permission.dart';
 import '../controllers/storage.dart';
 import '../controllers/wifi.dart';
 import '../widgets/qr_pin.dart';
@@ -39,7 +41,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final StorageController _storageController = StorageController();
   final List<GridItem> lists = [
     GridItem(
@@ -87,23 +89,96 @@ class _HomePageState extends State<HomePage> {
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
   late NetworkService _networkService;
-
+  bool _locationEnabled = false;
   @override
   void initState() {
-    requestPermission(Permission.camera);
-    requestPermission(Permission.contacts);
-    requestPermission(Permission.location);
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    requestAllPermissions();
     _networkService = NetworkService();
     _initNetworkInfo();
+
     connectivitySubscription = _connectivity.onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
       _updateConnectionStatus(results);
     });
-    super.initState();
+  }
+
+  Future<void> requestAllPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.contacts,
+      Permission.location,
+    ].request();
+
+    statuses.forEach((permission, status) {
+      debugPrint("Permission: $permission, Status: $status");
+    });
+
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    setState(() => _locationEnabled = serviceEnabled);
+
+    if (!serviceEnabled) {
+      _showEnableLocationDialog();
+    }
+  }
+
+  void _showEnableLocationDialog() {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            backgroundColor: Theme.of(context).appColors.background,
+            content: const Text(
+              "Location services are turned off. Please enable GPS to continue.",
+            ),
+            icon: Image.asset(
+              "assets/images/gps.gif",
+              height: 100,
+              width: 100,
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  child: const Text("Go To Settings"),
+                  onPressed: () async {
+                    await OpenSettings.openLocationSourceSetting();
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      // ✅ Check again when user comes back from Settings
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled && !_locationEnabled) {
+        setState(() => _locationEnabled = true);
+        // Close dialog if still open
+        _initNetworkInfo();
+        if (Navigator.canPop(navigatorKey.currentContext!)) {
+          Navigator.of(navigatorKey.currentContext!).pop();
+        }
+      } else if (!serviceEnabled && _locationEnabled) {
+        setState(() => _locationEnabled = false);
+        _showEnableLocationDialog();
+      }
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     connectivitySubscription?.cancel();
     super.dispose();
   }
@@ -122,130 +197,77 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final height = screenSize.height;
-    final width = screenSize.width;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'BelBird Technologies',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: width * 0.06,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              'BBT Switch Matrix',
-              style: TextStyle(
-                color: Theme.of(context).appColors.textPrimary,
-                fontSize: width * 0.04,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Image.asset(
-              "assets/images/BBT_Logo_2.png",
-              width: height * 0.1,
-              height: height * 0.1,
-            ),
-          ),
-        ],
-      ),
+      backgroundColor: Theme.of(context).appColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Text(
-              'WIFI is connected to Wifi Name',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
+            ImageCarouselWidget(
+              connectionStatus: _connectionStatus,
             ),
-            Text(
-              '"$_connectionStatus"',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall!
-                  .copyWith(color: Theme.of(context).appColors.primary),
-            ),
-            Padding(
+            GridView.builder(
               padding: const EdgeInsets.all(20.0),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: lists.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                ),
-                itemBuilder: (context, index) {
-                  final item = lists[index];
-                  return GestureDetector(
-                    onTap: () async {
-                      if (item.name == 'Generate QR') {
-                        final qrPin = await _storageController.getQrPin();
-                        PinDialog pinDialog = PinDialog(context);
-                        pinDialog.showPinDialog(
-                          isFirstTime: qrPin == null,
-                          onSuccess: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const GenerateQRPage(),
-                              ),
-                            );
-                          },
-                        );
-                      } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => item.navigateTo,
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Theme.of(context).appColors.background,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context)
-                                .appColors
-                                .textPrimary
-                                .withOpacity(0.1),
-                            blurRadius: 5,
-                            offset: const Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(item.icon,
-                              height: height * .045, color: item.color),
-                          const SizedBox(height: 10),
-                          Text(
-                            item.name,
-                            style: Theme.of(context).textTheme.titleSmall,
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: lists.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 0.9,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
               ),
+              itemBuilder: (context, index) {
+                final item = lists[index];
+                return GestureDetector(
+                  onTap: () async {
+                    if (item.name == 'Generate QR') {
+                      final qrPin = await _storageController.getQrPin();
+                      PinDialog pinDialog = PinDialog(context);
+                      pinDialog.showPinDialog(
+                        isFirstTime: qrPin == null,
+                        onSuccess: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const GenerateQRPage(),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => item.navigateTo,
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: Theme.of(context).appColors.primary),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(item.icon,
+                            height: height * .045, color: item.color),
+                        const SizedBox(height: 10),
+                        Text(
+                          item.name,
+                          style: Theme.of(context).textTheme.titleSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -259,7 +281,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               OpenSettings.openWIFISetting();
             },
-            backgroundColor: Theme.of(context).appColors.buttonBackground,
             child: const Icon(Icons.wifi_find),
           ),
           const SizedBox(height: 15),
@@ -268,7 +289,6 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               OpenSettings.openLocationSourceSetting();
             },
-            backgroundColor: Theme.of(context).appColors.buttonBackground,
             child: const Icon(Icons.location_on_rounded),
           ),
         ],

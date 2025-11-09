@@ -31,9 +31,7 @@ class _ContactsPageState extends State<ContactsPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).appColors.primary,
           child: Icon(Icons.person_add_alt,
               color: Theme.of(context).appColors.background),
           onPressed: () async {

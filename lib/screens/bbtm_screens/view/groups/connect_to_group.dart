@@ -61,8 +61,6 @@ class _ConnectToSwitchWidgetState extends State<ConnectToGroupWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final width = screenSize.width;
     return Scaffold(
       appBar: AppBar(title: Text(widget.groupName)),
       body: Column(

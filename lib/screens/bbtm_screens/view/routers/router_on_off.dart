@@ -144,7 +144,6 @@ class _RouterOnOffState extends State<RouterOnOff> {
       child: Scaffold(
         appBar: AppBar(title: Text(widget.routerDetails.routerName)),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).appColors.primary,
           onPressed: () {
             updateSwitch();
           },

@@ -1,6 +1,5 @@
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -9,7 +8,6 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final Widget? suffixIcon;
   final TextInputType keyboardType;
-  final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
   final void Function(String query)? onChanged;
   final Icon? prefixIcon;
@@ -20,7 +18,6 @@ class CustomTextField extends StatelessWidget {
     required this.hintText,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
-    this.inputFormatters,
     this.validator,
     this.maxLength,
     this.suffixIcon,
@@ -38,8 +35,6 @@ class CustomTextField extends StatelessWidget {
       maxLength: maxLength,
       onChanged: onChanged,
       keyboardType: keyboardType,
-      inputFormatters: inputFormatters ??
-          [FilteringTextInputFormatter.deny(RegExp(r'[<>{}$^%\[]'))],
       contextMenuBuilder: null,
       style: Theme.of(context).textTheme.titleSmall,
       decoration: InputDecoration(
@@ -78,6 +73,7 @@ class CustomTextField extends StatelessWidget {
             ),
           ),
           prefixIcon: prefixIcon,
+          prefixIconColor: Theme.of(context).appColors.grey,
           suffixIcon: suffixIcon),
     );
   }

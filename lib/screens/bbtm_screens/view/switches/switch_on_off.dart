@@ -34,11 +34,11 @@ class _SwitchOnOffState extends State<SwitchOnOff> {
   bool switchOn = false;
   String statusRes = "";
   late String selectedControl = "OFF";
-  List<String> controls = [
+  final List<String> controls = [
     "OFF",
-    "HIGH",
     "LOW",
     "MEDIUM",
+    "HIGH",
   ];
   Future<List<String>> fetchSwitches() async {
     return widget.switchDetails.switchTypes;
@@ -145,7 +145,6 @@ class _SwitchOnOffState extends State<SwitchOnOff> {
       onTap: () => _resetTimer,
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).appColors.primary,
           onPressed: () {
             updateSwitch();
           },

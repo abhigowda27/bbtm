@@ -52,8 +52,6 @@ class _ConnectToSwitchPageState extends State<ConnectToSwitchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final width = screenSize.width;
     return Scaffold(
       appBar: AppBar(title: Text(widget.switchDetails.switchSSID)),
       body: SingleChildScrollView(
@@ -79,7 +77,7 @@ class _ConnectToSwitchPageState extends State<ConnectToSwitchPage> {
                         !widget.switchDetails.switchSSID
                             .contains(_connectionStatus)) {
                       showToast(context,
-                          "Please Connect WIFI to ${widget.switchDetails.switchSSID} to proceed");
+                          "Please Connect WIFI to '${widget.switchDetails.switchSSID}' to proceed");
                       return;
                     }
                     Navigator.push(

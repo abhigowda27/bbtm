@@ -118,7 +118,6 @@ class _FanSwitchControlState extends State<FanSwitchControl> {
       onTap: _resetTimer,
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).appColors.primary,
           onPressed: updateSwitch,
           child: const Icon(Icons.refresh_rounded),
         ),

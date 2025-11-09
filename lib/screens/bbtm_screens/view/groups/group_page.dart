@@ -1,6 +1,5 @@
 import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:bbtml_new/widgets/text_field.dart';
 import 'package:flutter/material.dart';
 
 import '../../controllers/storage.dart';
@@ -59,7 +58,6 @@ class _GroupingPageState extends State<GroupingPage> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).appColors.primary,
         child: Icon(Icons.add, color: Theme.of(context).appColors.background),
         onPressed: () {
           Navigator.push(
@@ -75,18 +73,54 @@ class _GroupingPageState extends State<GroupingPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(
-                top: screenWidth * 0.06,
-                left: screenWidth * 0.06,
-                right: screenWidth * 0.06),
-            child: CustomTextField(
-              controller: _searchController,
-              hintText: 'Search by Group Name',
-              prefixIcon: const Icon(Icons.search_rounded),
-              onChanged: _filterGroups, // Call the filter function
-            ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(15),
+                    bottomRight: Radius.circular(15),
+                  ),
+                  color: Theme.of(context).appColors.primary,
+                ),
+                height: MediaQuery.of(context).size.height * 0.07,
+              ),
+              Positioned(
+                bottom: -25,
+                left: 16,
+                right: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).appColors.background,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _filterGroups,
+                    decoration: InputDecoration(
+                      hintText: 'Search devices...',
+                      hintStyle: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 25),
           Expanded(
             child: _filteredGroups.isEmpty
                 ? CommonServices.noDataWidget()

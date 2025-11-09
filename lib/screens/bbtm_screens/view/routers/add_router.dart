@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bbtml_new/theme/app_colors_extension.dart';
+import 'package:bbtml_new/widgets/mandatory_text.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
@@ -102,37 +103,40 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
     final height = screenSize.height;
     return Scaffold(
         appBar: AppBar(title: const Text("Add Router")),
-        body: Center(
-          child: Form(
-            key: formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  CustomTextField(
-                    controller: _ssid,
-                    validator: (value) {
-                      if (value!.isEmpty) return "SSID cannot be empty";
-                      return null;
-                    },
-                    hintText: "New Router Name",
-                  ),
-                  SizedBox(
-                    height: height * 0.03,
-                  ),
-                  CustomTextField(
-                    controller: _password,
-                    validator: (value) {
-                      if (value!.length <= 7) {
-                        return "Router Password cannot be less than 8 letters";
-                      }
-                      return null;
-                    },
-                    hintText: "New Router Password",
-                  ),
-                  const Spacer(),
-                  loading
-                      ? Padding(
+        body: Form(
+          key: formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                richTxt(text: "Router Name"),
+                CustomTextField(
+                  controller: _ssid,
+                  validator: (value) {
+                    if (value!.isEmpty) return "SSID cannot be empty";
+                    return null;
+                  },
+                  hintText: "New Router Name",
+                ),
+                SizedBox(
+                  height: height * 0.01,
+                ),
+                richTxt(text: "Router Password"),
+                CustomTextField(
+                  controller: _password,
+                  validator: (value) {
+                    if (value!.length <= 7) {
+                      return "Router Password cannot be less than 8 letters";
+                    }
+                    return null;
+                  },
+                  hintText: "New Router Password",
+                ),
+                const Spacer(),
+                loading
+                    ? Center(
+                        child: Padding(
                           padding: const EdgeInsetsDirectional.fromSTEB(
                               16, 0, 16, 16),
                           child: InkWell(
@@ -167,8 +171,10 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                               ),
                             ),
                           ),
-                        )
-                      : CustomButton(
+                        ),
+                      )
+                    : Center(
+                        child: CustomButton(
                           width: 200,
                           text: "Submit",
                           onPressed: () async {
@@ -318,6 +324,10 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                   setState(() {
                                     loading = false;
                                   });
+                                  if (res["MAC"] == null) {
+                                    showToast(context,
+                                        "MAC id is Null please, check with operator");
+                                  }
                                   RouterDetails routerDetails = RouterDetails(
                                       switchID: switchID,
                                       switchName: switchName,
@@ -354,9 +364,9 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                               }
                             }
                           },
-                        )
-                ],
-              ),
+                        ),
+                      )
+              ],
             ),
           ),
         ));

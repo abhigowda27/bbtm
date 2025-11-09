@@ -86,8 +86,6 @@ class _GroupFanSwitchCardState extends State<GroupFanSwitchCard> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final width = screenSize.width;
     return Container(
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.all(20),

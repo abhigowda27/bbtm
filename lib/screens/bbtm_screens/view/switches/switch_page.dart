@@ -2,13 +2,11 @@ import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../widgets/text_field.dart';
 import '../../controllers/storage.dart';
 import '../../models/switch_model.dart';
 import '../../widgets/switches/switches_card.dart';
 import '../qr/gallery_qr.dart';
 import '../qr/qr_view.dart';
-import 'connect_to_switch.dart';
 
 class SwitchPage extends StatefulWidget {
   const SwitchPage({super.key});
@@ -72,9 +70,13 @@ class _SwitchPageState extends State<SwitchPage> {
     } else {
       setState(() {
         _filteredSwitches = _allSwitches
-            .where((switchDetails) => switchDetails.switchSSID
-                .toLowerCase()
-                .contains(query.toLowerCase()))
+            .where((switchDetails) =>
+                switchDetails.switchSSID
+                    .toLowerCase()
+                    .contains(query.toLowerCase()) ||
+                switchDetails.switchId
+                    .toLowerCase()
+                    .contains(query.toLowerCase()))
             .toList();
       });
     }
@@ -98,7 +100,6 @@ class _SwitchPageState extends State<SwitchPage> {
                 ));
               },
               heroTag: "QR",
-              backgroundColor: Theme.of(context).appColors.primary,
               child: Icon(Icons.camera_alt_outlined,
                   color: Theme.of(context).appColors.background),
             ),
@@ -110,7 +111,6 @@ class _SwitchPageState extends State<SwitchPage> {
                   builder: (context) => const GalleryQRPage(),
                 ));
               },
-              backgroundColor: Theme.of(context).appColors.primary,
               child: Icon(Icons.image_outlined,
                   color: Theme.of(context).appColors.background),
             ),
@@ -118,22 +118,54 @@ class _SwitchPageState extends State<SwitchPage> {
         ),
       ),
       appBar: AppBar(
-        title: Text("SWITCHES"),
+        title: const Text("SWITCHES"),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.only(
-                top: screenWidth * 0.06,
-                left: screenWidth * 0.06,
-                right: screenWidth * 0.06),
-            child: CustomTextField(
-              controller: _searchController,
-              hintText: 'Search Switch',
-              prefixIcon: const Icon(Icons.search_rounded),
-              onChanged: _filterSwitches,
-            ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(15),
+                    bottomRight: Radius.circular(15),
+                  ),
+                  color: Theme.of(context).appColors.primary,
+                ),
+                height: MediaQuery.of(context).size.height * 0.07,
+              ),
+              Positioned(
+                bottom: -25,
+                left: 16,
+                right: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).appColors.background,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _filterSwitches,
+                    decoration: const InputDecoration(
+                      hintText: 'Search devices...',
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 15),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 25),
           Expanded(
             child: _filteredSwitches.isEmpty
                 ? CommonServices.noDataWidget()
@@ -146,19 +178,7 @@ class _SwitchPageState extends State<SwitchPage> {
                       final reversedIndex =
                           _filteredSwitches.length - 1 - index;
                       final switchDetails = _filteredSwitches[reversedIndex];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ConnectToSwitchPage(
-                                switchDetails: switchDetails,
-                              ),
-                            ),
-                          );
-                        },
-                        child: SwitchCard(switchDetails: switchDetails),
-                      );
+                      return SwitchCard(switchDetails: switchDetails);
                     },
                     separatorBuilder: (BuildContext context, int index) {
                       return SizedBox(height: screenWidth * 0.04);

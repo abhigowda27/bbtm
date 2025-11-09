@@ -62,7 +62,6 @@ class _MacsPageState extends State<MacsPage> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).appColors.primary,
           child: Icon(
             FontAwesomeIcons.plus,
             color: Theme.of(context).appColors.background,

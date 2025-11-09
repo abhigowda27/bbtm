@@ -344,8 +344,6 @@ class _ScheduleOnOffPageState extends State<ScheduleOnOffPage> {
           ? null
           : FloatingActionButton(
               heroTag: "addTimer",
-              backgroundColor:
-                  Theme.of(context).appColors.primary.withOpacity(0.7),
               onPressed: addNewAlarm,
               child: const Icon(Icons.add),
             ),
