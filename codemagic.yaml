@@ -1,15 +1,4 @@
 workflows:
-  android:
-    name: Android Build  
-    instance_type: linux_x2
-    environment:
-      flutter: stable
-    scripts:
-      - flutter pub get
-      - flutter build apk --release
-    artifacts:
-      - build/app/outputs/flutter-apk/*.apk
-
   ios:
     name: iOS Build
     instance_type: mac_mini_m2
