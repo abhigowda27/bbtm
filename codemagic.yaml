@@ -1,0 +1,56 @@
+workflows:
+  android-workflow:
+    name: Android Release Build
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+      groups:
+        - android-signing   # defined in Codemagic UI
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Get dependencies
+        script: flutter pub get
+
+      - name: Build Android APK (release)
+        script: flutter build apk --release --split-per-abi
+
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+
+  ios-workflow:
+    name: iOS Release Build
+    max_build_duration: 90
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - ios-signing   # defined in Codemagic UI
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Get dependencies
+        script: flutter pub get
+
+      - name: Install iOS pods
+        script: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Build iOS IPA
+        script: flutter build ipa --release
+
+    artifacts:
+      - build/ios/ipa/*.ipa
