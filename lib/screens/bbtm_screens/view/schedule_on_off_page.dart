@@ -1,3 +1,4 @@
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -97,11 +98,13 @@ class _ScheduleOnOffPageState extends State<ScheduleOnOffPage> {
       final response = await ApiConnect.hitApiPost(url, payload);
       debugPrint("$response");
       if (response.toLowerCase() == "ok") {
-        showToast(context,
+        showToast(navigatorKey
+            .currentContext!,
             alarm.enabled ? "Successfully scheduled" : "Successfully removed");
         debugPrint('API call successful: $response');
       } else {
-        showToast(context, "Something went wrong");
+        showToast(navigatorKey
+            .currentContext!, "Something went wrong");
         debugPrint('API call failed with status: ${response.statusCode}');
       }
     } catch (e) {
@@ -148,7 +151,8 @@ class _ScheduleOnOffPageState extends State<ScheduleOnOffPage> {
     if (onTime == null) return;
 
     final offTime = await showTimePicker(
-      context: context,
+      context: navigatorKey
+          .currentContext!,
       initialTime: onTime,
       helpText: 'Select OFF Time',
     );

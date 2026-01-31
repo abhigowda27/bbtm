@@ -35,3 +35,9 @@ class DeleteSwitchEvent extends SwitchEvent {
     required this.uuid,
   });
 }
+
+class GetSwitchStatus extends SwitchEvent {
+  final Map<String, dynamic> payload;
+
+  GetSwitchStatus({required this.payload});
+}

@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/switches/factory_reset.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:open_settings/open_settings.dart';
 
 import '../controllers/storage.dart';
 import '../controllers/wifi.dart';
@@ -91,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
               text: "Open WIFI Settings",
               icon: Icons.wifi_find,
               onPressed: () {
-                OpenSettings.openWIFISetting();
+                AppSettings.openAppSettings(type: AppSettingsType.wifi);
               },
             ),
             CustomButton(
@@ -105,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 for (var element in switches) {
                   if (localConnectStatus == (element.switchSSID)) {
                     Navigator.push(
-                        context,
+                        navigatorKey.currentContext!,
                         MaterialPageRoute(
                             builder: (context) => FactoryReset(
                                   currentSwitch: _connectionStatus,
@@ -114,7 +115,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     return;
                   }
                 }
-                showToast(context, "You may not be connected to AP Mode.");
+                showToast(navigatorKey.currentContext!,
+                    "You may not be connected to AP Mode.");
               },
             ),
           ],

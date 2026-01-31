@@ -263,6 +263,7 @@
 //   }
 // }
 
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/controllers/storage.dart';
 import 'package:bbtml_new/screens/bbtm_screens/models/group_model.dart';
 import 'package:bbtml_new/screens/bbtm_screens/models/router_model.dart';
@@ -310,7 +311,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
         availableSwitches = filteredSwitches;
       });
     } catch (e) {
-      showToast(context, "Error fetching switches");
+      showToast(navigatorKey.currentContext!, "Error fetching switches");
     }
   }
 
@@ -332,7 +333,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
         availableRouters = uniqueRouters;
       });
     } catch (e) {
-      showToast(context, "Error fetching routers");
+      showToast(navigatorKey.currentContext!, "Error fetching routers");
     }
   }
 
@@ -352,13 +353,13 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
 
   Future<void> handleSubmit() async {
     if (_groupName.text.isEmpty) {
-      showToast(context, "Group name cannot be empty.");
+      showToast(navigatorKey.currentContext!, "Group name cannot be empty.");
       return;
     }
     String groupName = _groupName.text;
     bool groupExists = await _storage.groupExists(groupName);
     if (groupExists) {
-      showToast(context, "Group name already exists.");
+      showToast(navigatorKey.currentContext!, "Group name already exists.");
       return;
     }
     try {
@@ -373,7 +374,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
       for (int i = 0; i < selectedSwitches.length; i++) {
         selectedSwitches[i].switchTypes = selectedSwitchTypes[i] ?? [];
         debugPrint(
-            "Switch: ${selectedSwitches[i].switchName}, Selected Types: ${selectedSwitchTypes[i] ?? []}");
+            "Switch: ${selectedSwitches[i].switchName}, Selected Types: ${selectedRouterDetails.routerPassword}");
       }
 
       GroupDetails groupDetails = GroupDetails(
@@ -390,14 +391,14 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
       });
 
       Navigator.pushAndRemoveUntil<dynamic>(
-        context,
+        navigatorKey.currentContext!,
         MaterialPageRoute(
           builder: (context) => const TabsPage(),
         ),
         (route) => false,
       );
     } catch (e) {
-      showToast(context, "Unable to connect. Try Again.");
+      showToast(navigatorKey.currentContext!, "Unable to connect. Try Again.");
       setState(() {
         loading = false;
       });
@@ -436,7 +437,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
                 contentPadding: const EdgeInsets.all(10),
                 labelStyle: Theme.of(context).textTheme.titleSmall,
               ),
-              value: selectedRouter,
+              initialValue: selectedRouter,
               onChanged: handleRouterChange,
               items: availableRouters
                   .map((routerItem) => DropdownMenuItem(
@@ -480,7 +481,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
                     .copyWith(fontWeight: FontWeight.bold),
                 labelStyle: Theme.of(context).textTheme.titleSmall,
               ),
-              value: null,
+              initialValue: null,
               onChanged: (selectedSwitch) {
                 setState(() {
                   if (selectedSwitch != null &&

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/models/switch_model.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -121,7 +122,7 @@ class _FanSwitchControlState extends State<FanSwitchControl> {
           onPressed: updateSwitch,
           child: const Icon(Icons.refresh_rounded),
         ),
-        appBar: AppBar(title: Text("Fan Control")),
+        appBar: AppBar(title: const Text("Fan Control")),
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
@@ -249,14 +250,16 @@ class _FanSwitchControlState extends State<FanSwitchControl> {
       debugPrint(response);
       debugPrint("${widget.switchDetails.iPAddress}/getSwitchcmd" "$command ");
       if (response.toLowerCase() == "ok") {
-        showToast(context, "Fan '$command' executed successfully");
+        showToast(navigatorKey.currentContext!,
+            "Fan '$command' executed successfully");
       } else {
-        showToast(context, "Failed to execute. Try again.");
+        showToast(
+            navigatorKey.currentContext!, "Failed to execute. Try again.");
       }
     } on DioException catch (e) {
       debugPrint("$e");
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
         SnackBar(
             content: Text("An unexpected error occurred: ${e.toString()}")),
       );

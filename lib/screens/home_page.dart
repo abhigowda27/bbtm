@@ -249,3 +249,183 @@
 //     );
 //   }
 // }
+
+import 'package:flutter/material.dart';
+
+class DropdownExamplesPage extends StatefulWidget {
+  const DropdownExamplesPage({super.key});
+
+  @override
+  State<DropdownExamplesPage> createState() => _DropdownExamplesPageState();
+}
+
+class _DropdownExamplesPageState extends State<DropdownExamplesPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  String _basicValue = 'Apple';
+  String? _formValue;
+  String _modernValue = 'Apple';
+  String _searchValue = 'Chennai';
+  String _styledValue = 'Banana';
+
+  final List<String> fruits = [
+    'Apple',
+    'Banana',
+    'Appgfdsle',
+    'Bangvfcdana',
+    'Orfdsange',
+    'App443le',
+    'Ba23wnana',
+    'Or344ange',
+    "ytdfgukhigjhy"
+  ];
+  final List<String> cities = ['Chennai', 'Bangalore', 'Hyderabad'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dropdown Examples')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 1️⃣ BASIC DROPDOWN
+            const Text('1. Basic DropdownButton'),
+            const SizedBox(height: 8),
+            DropdownButton<String>(
+              value: _basicValue,
+              items: fruits
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item,
+                      child: Text(item),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  _basicValue = value!;
+                });
+              },
+            ),
+
+            const Divider(height: 32),
+
+            /// 2️⃣ DROPDOWN FORM FIELD
+            const Text('2. DropdownButtonFormField'),
+            const SizedBox(height: 8),
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Select fruit',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: _formValue,
+                    items: fruits
+                        .map(
+                          (item) => DropdownMenuItem(
+                            value: item,
+                            child: Text(item),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _formValue = value;
+                      });
+                    },
+                    validator: (value) =>
+                        value == null ? 'Please select a fruit' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      _formKey.currentState!.validate();
+                    },
+                    child: const Text('Validate'),
+                  ),
+                ],
+              ),
+            ),
+
+            const Divider(height: 32),
+
+            /// 3️⃣ MODERN MATERIAL 3 DROPDOWN
+            const Text('3. DropdownMenu (Material 3)'),
+            const SizedBox(height: 8),
+            DropdownMenu<String>(
+              hintText: "okijhgf",
+              initialSelection: _modernValue,
+              label: const Text('Fruit'),
+              onSelected: (value) {
+                setState(() {
+                  _modernValue = value!;
+                });
+              },
+              dropdownMenuEntries: fruits
+                  .map(
+                    (item) => DropdownMenuEntry(value: item, label: item),
+                  )
+                  .toList(),
+            ),
+
+            const Divider(height: 32),
+
+            /// 4️⃣ SEARCHABLE DROPDOWN
+            const Text('4. Searchable Dropdown'),
+            const SizedBox(height: 8),
+            DropdownMenu<String>(
+              enableSearch: true,
+              initialSelection: _searchValue,
+              label: const Text('City'),
+              onSelected: (value) {
+                setState(() {
+                  _searchValue = value!;
+                });
+              },
+              dropdownMenuEntries: cities
+                  .map(
+                    (city) => DropdownMenuEntry(value: city, label: city),
+                  )
+                  .toList(),
+            ),
+
+            const Divider(height: 32),
+
+            /// 5️⃣ STYLED DROPDOWN
+            const Text('5. Styled DropdownButtonFormField'),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              value: _styledValue,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: fruits
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item,
+                      child: Text(item),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  _styledValue = value!;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

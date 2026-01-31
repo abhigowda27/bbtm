@@ -30,11 +30,4 @@ class GroupDetails {
     data['selectedSwitches'] = selectedSwitches.map((e) => e.toJson()).toList();
     return data;
   }
-
-  String toGroupQR() {
-    String switchesQR = selectedSwitches
-        .map((switchDetails) => "[${switchDetails.routerQRGroup()}]")
-        .join(", ");
-    return "GROUP,$groupName,$selectedRouter,$routerPassword,[$switchesQR]";
-  }
 }

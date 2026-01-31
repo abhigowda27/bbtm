@@ -1,6 +1,8 @@
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+import 'package:flutter_native_contact_picker/model/contact.dart' show Contact;
 
 import '../../controllers/storage.dart';
 import '../../models/contacts.dart';
@@ -15,7 +17,8 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
-  final FlutterContactPicker _contactPicker = FlutterContactPicker();
+  final FlutterNativeContactPicker _contactPicker =
+      FlutterNativeContactPicker();
   final StorageController _storageController = StorageController();
 
   Future<List<ContactsModel>> fetchContacts() async {
@@ -38,7 +41,7 @@ class _ContactsPageState extends State<ContactsPage> {
             Contact? contact = await _contactPicker.selectContact();
             if (contact != null) {
               Navigator.push(
-                  context,
+                  navigatorKey.currentContext!,
                   MaterialPageRoute(
                       builder: (context) => AccessRequestPage(
                             name: contact.fullName!,
@@ -61,7 +64,6 @@ class _ContactsPageState extends State<ContactsPage> {
               return Center(child: Text("ERROR: ${snapshot.error}"));
             }
             return ListView.separated(
-              physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.all(screenWidth * 0.06),
               shrinkWrap: true,
               itemCount: snapshot.data!.length,

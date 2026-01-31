@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:bbtml_new/main.dart';
+import 'package:bbtml_new/screens/bbtm_screens/models/appliance_model.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:bbtml_new/widgets/mandatory_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../constants.dart';
 import '../../../../controllers/apis.dart';
@@ -52,7 +57,48 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
   @override
   void initState() {
     super.initState();
-    _updateAvailableSwitchTypes();
+    initValues();
+    _loadAppliances();
+    // _updateAvailableSwitchTypes();
+  }
+
+  List<Appliance> _appliances = [];
+  Appliance? _selectedAppliance;
+
+  Future<void> _loadAppliances() async {
+    final jsonString =
+        await rootBundle.loadString('assets/json/appliances_data.json');
+
+    final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+    setState(() {
+      _appliances = (jsonData['appliances'] as List)
+          .map((e) => Appliance.fromJson(e))
+          .toList();
+    });
+  }
+
+  void initValues() {
+    _switchId.text = widget.switchDetails.switchId;
+    _ssid.text = widget.switchDetails.switchSSID;
+    _password.text = widget.switchDetails.switchPassword;
+    _passKey.text = widget.switchDetails.switchPassKey!;
+    _privatePin.text = widget.switchDetails.privatePin;
+
+    // For fan
+    if (widget.switchDetails.selectedFan!.isNotEmpty) {
+      _addFan = "Yes";
+      _fanNameController.text = widget.switchDetails.selectedFan!;
+    } else {
+      _addFan = "No";
+    }
+
+    // Prefill switch types (rename switches)
+    selectedSwitches = widget.switchDetails.switchTypes
+        .map((type) => {
+              'type': TextEditingController(text: type),
+            })
+        .toList();
   }
 
   void _updateAvailableSwitchTypes() {
@@ -68,220 +114,234 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final height = screenSize.height;
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Switch")),
+      appBar: AppBar(title: const Text("Add Device")),
       body: SingleChildScrollView(
-        child: Center(
-          child: Form(
-            key: formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              richTxt(text: "Switch ID"),
+              CustomTextField(
+                controller: _switchId,
+                validator: (value) {
+                  if (value!.isEmpty) return "Switch ID cannot be empty";
+                  return null;
+                },
+                hintText: "SwitchID",
+              ),
+              richTxt(text: "Switch Name"),
+              CustomTextField(
+                controller: _ssid,
+                validator: (value) {
+                  if (value!.isEmpty) return "SSID cannot be empty";
+                  return null;
+                },
+                hintText: "New Switch Name",
+              ),
+              richTxt(text: "Select Switch Type"),
+              GestureDetector(
+                onTap: () => _showApplianceBottomSheet(),
+                child: AbsorbPointer(
+                  child: CustomTextField(
+                    controller: TextEditingController(
+                      text: _selectedAppliance?.name ?? "",
+                    ),
+                    validator: (_) {
+                      if (_selectedAppliance == null) {
+                        return "Please select an appliance";
+                      }
+                      return null;
+                    },
+                    hintText: "Select Appliance",
+                    suffixIcon: const Icon(Icons.keyboard_arrow_down),
+                  ),
+                ),
+              ),
+              richTxt(text: "Switch Password"),
+              CustomTextField(
+                controller: _password,
+                validator: (value) {
+                  if (value!.length <= 7) {
+                    return "Switch Password cannot be less than 8 letters";
+                  }
+                  return null;
+                },
+                hintText: "New Password",
+              ),
+              richTxt(text: "PIN"),
+              CustomTextField(
+                maxLength: 4,
+                controller: _privatePin,
+                validator: (value) {
+                  if (value!.length <= 3) {
+                    return "Switch Pin cannot be less than 4 letters";
+                  }
+                  return null;
+                },
+                hintText: "New Pin",
+              ),
+              richTxt(text: "Switch Passkey"),
+              CustomTextField(
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "PassKey Cannot be empty";
+                  }
+                  if (value.length <= 7) {
+                    return "PassKey Cannot be less than 8 letters";
+                  }
+                  return null;
+                },
+                controller: _passKey,
+                hintText: "New Passkey",
+              ),
+              SizedBox(height: height * 0.03),
+              const Text(
+                "Do you want to add a fan?",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              Row(
                 children: [
-                  richTxt(text: "Switch ID"),
-                  CustomTextField(
-                    controller: _switchId,
-                    validator: (value) {
-                      if (value!.isEmpty) return "Switch ID cannot be empty";
-                      return null;
-                    },
-                    hintText: "SwitchID",
-                  ),
-                  richTxt(text: "Switch Name"),
-                  CustomTextField(
-                    controller: _ssid,
-                    validator: (value) {
-                      if (value!.isEmpty) return "SSID cannot be empty";
-                      return null;
-                    },
-                    hintText: "New Switch Name",
-                  ),
-                  richTxt(text: "Switch Password"),
-                  CustomTextField(
-                    controller: _password,
-                    validator: (value) {
-                      if (value!.length <= 7) {
-                        return "Switch Password cannot be less than 8 letters";
-                      }
-                      return null;
-                    },
-                    hintText: "New Password",
-                  ),
-                  richTxt(text: "PIN"),
-                  CustomTextField(
-                    maxLength: 4,
-                    controller: _privatePin,
-                    validator: (value) {
-                      if (value!.length <= 3) {
-                        return "Switch Pin cannot be less than 4 letters";
-                      }
-                      return null;
-                    },
-                    hintText: "New Pin",
-                  ),
-                  richTxt(text: "Switch Passkey"),
-                  CustomTextField(
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "PassKey Cannot be empty";
-                      }
-                      if (value.length <= 7) {
-                        return "PassKey Cannot be less than 8 letters";
-                      }
-                      return null;
-                    },
-                    controller: _passKey,
-                    hintText: "New Passkey",
-                  ),
-                  SizedBox(height: height * 0.03),
-                  const Text(
-                    "Do you want to add a fan?",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                  Expanded(
+                    child: ListTile(
+                      title: const Text("Yes"),
+                      textColor: Theme.of(context).appColors.textSecondary,
+                      leading: Radio<String>(
+                        value: "Yes",
+                        groupValue: _addFan,
+                        onChanged: (value) {
+                          setState(() {
+                            _addFan = value;
+                            _updateAvailableSwitchTypes();
+                            _fanNameController.clear();
+                          });
+                        },
+                      ),
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: const Text("Yes"),
-                          leading: Radio<String>(
-                            value: "Yes",
-                            groupValue: _addFan,
-                            onChanged: (value) {
-                              setState(() {
-                                _addFan = value;
-                                _updateAvailableSwitchTypes();
-                                _fanNameController.clear();
-                              });
-                            },
-                          ),
-                        ),
+                  Expanded(
+                    child: ListTile(
+                      textColor: Theme.of(context).appColors.textSecondary,
+                      title: const Text("No"),
+                      leading: Radio<String>(
+                        value: "No",
+                        groupValue: _addFan,
+                        onChanged: (value) {
+                          setState(() {
+                            _addFan = value;
+                            _fanNameController.clear();
+                            _updateAvailableSwitchTypes();
+                          });
+                        },
                       ),
-                      Expanded(
-                        child: ListTile(
-                          title: const Text("No"),
-                          leading: Radio<String>(
-                            value: "No",
-                            groupValue: _addFan,
-                            onChanged: (value) {
-                              setState(() {
-                                _addFan = value;
-                                _fanNameController.clear();
-                                _updateAvailableSwitchTypes();
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  if (_addFan == "Yes") ...[
-                    SizedBox(height: height * 0.02),
-                    CustomTextField(
-                      controller: _fanNameController,
+                ],
+              ),
+              if (_addFan == "Yes") ...[
+                SizedBox(height: height * 0.02),
+                CustomTextField(
+                  controller: _fanNameController,
+                  validator: (value) {
+                    if (_addFan == "Yes" && (value == null || value.isEmpty)) {
+                      return "Fan name cannot be empty";
+                    }
+                    return null;
+                  },
+                  hintText: "Fan Name",
+                ),
+              ],
+              richTxt(text: "Select Switches"),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: DropdownButtonFormField<String>(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      value: _selectedSwitchType,
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedSwitchType = newValue;
+                        });
+                      },
                       validator: (value) {
-                        if (_addFan == "Yes" &&
-                            (value == null || value.isEmpty)) {
-                          return "Fan name cannot be empty";
+                        if ((_addFan == "No") && selectedSwitches.isEmpty) {
+                          return "Please select a switches";
                         }
                         return null;
                       },
-                      hintText: "Fan Name",
-                    ),
-                  ],
-                  richTxt(text: "Select Switches"),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: DropdownButtonFormField<String>(
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          value: _selectedSwitchType,
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selectedSwitchType = newValue;
-                            });
-                          },
-                          validator: (value) {
-                            if ((_addFan == "No") && selectedSwitches.isEmpty) {
-                              return "Please select a switches";
-                            }
-                            return null;
-                          },
-                          items: _availableSwitchTypes.map((switchType) {
-                            return DropdownMenuItem<String>(
-                              value: switchType,
-                              child: Text(switchType),
-                            );
-                          }).toList(),
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            hintStyle: Theme.of(context).textTheme.bodyLarge,
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 10),
-                            hintText:
-                                "Select Switches and Rename Them if Needed",
-                            labelStyle: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle),
-                        onPressed: () {
-                          if (_selectedSwitchType != null) {
-                            setState(() {
-                              selectedSwitches.add({
-                                'type': TextEditingController(
-                                    text: _selectedSwitchType),
-                              });
-                              _availableSwitchTypes.remove(_selectedSwitchType);
-                              _selectedSwitchType = null;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  if (selectedSwitches.isNotEmpty) ...[
-                    Column(
-                      children: selectedSwitches.map((switchMap) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: CustomTextField(
-                                  controller: switchMap['type']!,
-                                  hintText: "Rename Switch",
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle),
-                                onPressed: () {
-                                  setState(() {
-                                    _availableSwitchTypes
-                                        .add(switchMap['type']!.text);
-                                    selectedSwitches.remove(switchMap);
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
+                      items: _availableSwitchTypes.map((switchType) {
+                        return DropdownMenuItem<String>(
+                          value: switchType,
+                          child: Text(switchType),
                         );
                       }).toList(),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        hintStyle: Theme.of(context).textTheme.bodyLarge,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 10),
+                        hintText: "Select Switches and Rename Them if Needed",
+                        labelStyle: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle),
+                    onPressed: () {
+                      if (_selectedSwitchType != null) {
+                        setState(() {
+                          selectedSwitches.add({
+                            'type': TextEditingController(
+                                text: _selectedSwitchType),
+                          });
+                          _availableSwitchTypes.remove(_selectedSwitchType);
+                          _selectedSwitchType = null;
+                        });
+                      }
+                    },
+                  ),
                 ],
               ),
-            ),
+              if (selectedSwitches.isNotEmpty) ...[
+                Column(
+                  children: selectedSwitches.map((switchMap) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextField(
+                              controller: switchMap['type']!,
+                              hintText: "Rename Switch",
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle),
+                            onPressed: () {
+                              setState(() {
+                                _availableSwitchTypes
+                                    .add(switchMap['type']!.text);
+                                selectedSwitches.remove(switchMap);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -329,7 +389,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                           _ssid.text, _switchId.text);
                       if (exists) {
                         showDialog(
-                          context: context,
+                          context: navigatorKey.currentContext!,
                           builder: (cont) {
                             return AlertDialog(
                               title: const Text('Update Switch'),
@@ -384,7 +444,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                                       await ApiConnect.hitApiGet(
                                         "${Constants.routerIP}/",
                                       );
-                                      await ApiConnect.hitApiPost(
+                                      ApiConnect.hitApiPost(
                                           "${Constants.routerIP}/getSecretKey",
                                           {
                                             "Lock_id": _switchId.text,
@@ -395,7 +455,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                                           _ssid.text,
                                           switchDetails);
                                       Navigator.pushAndRemoveUntil<dynamic>(
-                                        context,
+                                        navigatorKey.currentContext!,
                                         MaterialPageRoute<dynamic>(
                                           builder: (BuildContext context) =>
                                               const TabsPage(),
@@ -405,8 +465,8 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                                     } catch (e) {
                                       debugPrint("Error inside updating");
                                       debugPrint("$e");
-                                      showToast(
-                                          context, "Error: ${e.toString()}");
+                                      showToast(navigatorKey.currentContext!,
+                                          "Error: ${e.toString()}");
                                     }
                                   },
                                   child: Text(
@@ -437,6 +497,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                           switchPassword: _password.text,
                           iPAddress: Constants.routerIP,
                           switchTypes: renamedSwitches,
+                          switchType: _selectedAppliance?.code,
                           selectedFan: fanName ?? "",
                         );
                         try {
@@ -449,28 +510,29 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                             "lock_name": _ssid.text,
                             "lock_pass": _password.text
                           });
-                          await ApiConnect.hitApiGet(
+                          ApiConnect.hitApiGet(
                             "${Constants.routerIP}/",
                           );
-                          await ApiConnect.hitApiPost(
+                          ApiConnect.hitApiPost(
                               "${Constants.routerIP}/getSecretKey", {
                             "Lock_id": _switchId.text,
                             "lock_passkey": _passKey.text
                           });
                           _storageController.addSwitches(switchDetails);
                           Navigator.pushAndRemoveUntil<dynamic>(
-                            context,
+                            navigatorKey.currentContext!,
                             MaterialPageRoute<dynamic>(
                               builder: (BuildContext context) =>
                                   const TabsPage(),
                             ),
                             (route) => false,
                           );
-                        } catch (e) {
-                          await ApiConnect.hitApiGet(
+                        } catch (e, s) {
+                          debugPrint("$e $s");
+                          ApiConnect.hitApiGet(
                             "${Constants.routerIP}/",
                           );
-                          await ApiConnect.hitApiPost(
+                          ApiConnect.hitApiPost(
                               "${Constants.routerIP}/getSecretKey", {
                             "Lock_id": switchDetails.switchId,
                             "lock_passkey": _passKey.text
@@ -480,7 +542,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                             loading = false;
                           });
                           Navigator.pushAndRemoveUntil<dynamic>(
-                            context,
+                            navigatorKey.currentContext!,
                             MaterialPageRoute<dynamic>(
                               builder: (BuildContext context) =>
                                   const TabsPage(),
@@ -493,6 +555,102 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                   }),
         ),
       ),
+    );
+  }
+
+  void _showApplianceBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.8,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.grey.shade500,
+                automaticallyImplyLeading: false,
+                title: Column(
+                  children: [
+                    Container(
+                      height: 4,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    Text(
+                      "Select Switch Type",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                ),
+              ),
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: ListView.separated(
+                      separatorBuilder: (_, index) {
+                        return const SizedBox(height: 10);
+                      },
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _appliances.length,
+                      itemBuilder: (_, index) {
+                        final appliance = _appliances[index];
+                        return ListTile(
+                          tileColor: Theme.of(context)
+                              .appColors
+                              .primary
+                              .withOpacity(0.25),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: _selectedAppliance?.id == appliance.id
+                                  ? Theme.of(context).appColors.buttonBackground
+                                  : Theme.of(context)
+                                      .appColors
+                                      .grey
+                                      .withOpacity(0.5),
+                            ),
+                          ),
+                          leading: Image.asset(
+                            Constants().applianceIconAsset(appliance.code),
+                            height: 50,
+                            width: 50,
+                            fit: BoxFit.contain,
+                          ),
+                          titleTextStyle:
+                              Theme.of(context).textTheme.titleMedium,
+                          subtitleTextStyle:
+                              Theme.of(context).textTheme.titleSmall,
+                          title: Text(appliance.name),
+                          subtitle: Text(appliance.category),
+                          trailing: _selectedAppliance?.id == appliance.id
+                              ? const Icon(Icons.check_circle_rounded,
+                                  color: Colors.green)
+                              : null,
+                          onTap: () {
+                            setState(() {
+                              _selectedAppliance = appliance;
+                            });
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

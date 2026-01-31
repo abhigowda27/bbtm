@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -55,17 +56,17 @@ class _GroupFanSwitchCardState extends State<GroupFanSwitchCard> {
   }
 
   void updateSwitch() async {
-    String res = await ApiConnect.hitApiGet(
+    Map<String, dynamic> apiRes = await ApiConnect.hitApiGet(
         "${widget.switchDetails.iPAddress}/Switchstatus");
-    debugPrint(res);
+    final Map<String, dynamic> res = Map<String, dynamic>.from(apiRes["data"]);
     setState(() {
-      if (res.contains("OK5 OPEN")) {
+      if (res["FAN"] == "LOW") {
         debugPrint("low");
         selectedControl = "LOW";
-      } else if (res.contains("OK6 OPEN")) {
+      } else if (res["FAN"] == "MED") {
         debugPrint("medium");
         selectedControl = "MEDIUM";
-      } else if (res.contains("OK7 OPEN")) {
+      } else if (res["FAN"] == "HIGH") {
         debugPrint("high");
         selectedControl = "HIGH";
       } else {
@@ -274,18 +275,19 @@ class _GroupFanSwitchCardState extends State<GroupFanSwitchCard> {
       debugPrint(response);
       debugPrint("${routerDetails.iPAddress}/getSwitchcmd" "$command ");
       if (response == "Ok") {
-        showToast(context,
+        showToast(navigatorKey.currentContext!,
             "Fan '$command' executed successfully for ${routerDetails.selectedFan}");
       } else {
-        showToast(context, "Failed to execute. Try again.");
+        showToast(
+            navigatorKey.currentContext!, "Failed to execute. Try again.");
       }
     } on DioException catch (e) {
       debugPrint(e.toString());
-      showToast(context, "An unexpected error occurred}");
+      showToast(navigatorKey.currentContext!, "An unexpected error occurred}");
     } catch (e) {
       debugPrint(e.toString());
 
-      showToast(context, "An unexpected error occurred}");
+      showToast(navigatorKey.currentContext!, "An unexpected error occurred}");
     }
   }
 }

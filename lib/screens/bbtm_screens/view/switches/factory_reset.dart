@@ -1,3 +1,4 @@
+import 'package:bbtml_new/main.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
@@ -84,7 +85,8 @@ class _FactoryResetState extends State<FactoryReset> {
                         debugPrint(e.toString());
                       } finally {
                         Navigator.pushAndRemoveUntil(
-                          context,
+                          navigatorKey
+                              .currentContext!,
                           MaterialPageRoute(
                               builder: (context) => const TabsPage()),
                           (route) => false,

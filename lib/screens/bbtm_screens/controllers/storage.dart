@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bbtml_new/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -25,11 +26,11 @@ class StorageController {
     storage.write(key: "contacts", value: json.encode(listContentsInJson));
   }
 
-  deleteContacts() async {
+  Future<void> deleteContacts() async {
     await storage.delete(key: "contacts");
   }
 
-  deleteOneContact(ContactsModel contactsModel) async {
+  Future<void> deleteOneContact(ContactsModel contactsModel) async {
     List<ContactsModel> contactList = await readContacts();
     contactList.removeWhere((element) => element.name == contactsModel.name);
     // for (var element in contactList) {
@@ -42,7 +43,7 @@ class StorageController {
     storage.write(key: "contacts", value: json.encode(listContectsInJson));
   }
 
-  getContactByPhone(phone) async {
+  Future<ContactsModel?>? getContactByPhone(String phone) async {
     List<ContactsModel> switchesList = await readContacts();
     for (var element in switchesList) {
       if (element.name == phone) return element;
@@ -90,6 +91,7 @@ class StorageController {
         element.privatePin = switchDetails.privatePin;
         element.switchPassKey = switchDetails.switchPassKey;
         element.selectedFan = switchDetails.selectedFan;
+        element.switchType = switchDetails.switchType;
         element.switchTypes = switchDetails.switchTypes;
         break;
       }
@@ -111,6 +113,7 @@ class StorageController {
         element.switchPasskey = switchDetails.switchPassKey!;
         element.selectedFan = switchDetails.selectedFan;
         element.switchTypes = switchDetails.switchTypes;
+        element.switchType = switchDetails.switchType;
         // Keep the name, password, and ipAddress the same
         element.deviceMacId = element.deviceMacId;
         element.routerName = element.routerName;
@@ -187,7 +190,7 @@ class StorageController {
         value: json.encode(routersList.map((e) => e.toJson()).toList()));
   }
 
-  deleteSwitches() async {
+  Future<void> deleteSwitches() async {
     await storage.delete(key: "switches");
   }
 
@@ -219,7 +222,7 @@ class StorageController {
     return model;
   }
 
-  getSwitchBySSID(switchName) async {
+  Future<SwitchDetails?>? getSwitchBySSID(switchName) async {
     List<SwitchDetails> switchesList = await readSwitches();
     for (var element in switchesList) {
       if (element.switchSSID == switchName) return element;
@@ -227,7 +230,7 @@ class StorageController {
     return null;
   }
 
-  deleteOneSwitch(SwitchDetails switchDetails) async {
+  Future<void> deleteOneSwitch(SwitchDetails switchDetails) async {
     List<SwitchDetails> switchList = await readSwitches();
     switchList.removeWhere(
         (element) => element.switchSSID == switchDetails.switchSSID);
@@ -303,11 +306,11 @@ class StorageController {
     );
   }
 
-  deleteRouters() async {
+  Future<void> deleteRouters() async {
     await storage.delete(key: "routers");
   }
 
-  getRouterByName(switchName) async {
+  Future<RouterDetails?>? getRouterByName(switchName) async {
     List<RouterDetails> routerList = await readRouters();
     for (var element in routerList) {
       if ("${element.routerName}_${element.switchName}" == switchName) {
@@ -337,7 +340,7 @@ class StorageController {
     return model;
   }
 
-  deleteOneRouter(String switchId) async {
+  Future<void> deleteOneRouter(String switchId) async {
     List<RouterDetails> switchList = await readRouters();
 
     switchList.removeWhere((element) => element.switchID == switchId);
@@ -407,11 +410,11 @@ class StorageController {
     await storage.write(key: _groupStateKey, value: value.toString());
   }
 
-  deleteGroups() async {
+  Future<void> deleteGroups() async {
     await storage.delete(key: "groups");
   }
 
-  getGroupByName(groupName) async {
+  Future<GroupDetails?>? getGroupByName(groupName) async {
     List<GroupDetails> groupList = await readAllGroups();
     for (var element in groupList) {
       if (element.groupName == groupName) return element;
@@ -478,7 +481,7 @@ class StorageController {
     );
   }
 
-  deleteMacs() async {
+  Future<void> deleteMacs() async {
     await storage.delete(key: "macs");
   }
 
@@ -500,7 +503,7 @@ class StorageController {
     return model;
   }
 
-  deleteOneMacs(MacsDetails switchDetails) async {
+  Future<void> deleteOneMacs(MacsDetails switchDetails) async {
     List<MacsDetails> switchList = await readMacs();
     switchList.removeWhere((element) =>
         element.id == switchDetails.id &&
@@ -512,9 +515,12 @@ class StorageController {
     storage.write(key: "macs", value: json.encode(listContentsInJson));
   }
 
-  updateMacStatus(MacsDetails switchDetails, BuildContext context) async {
+  Future<void> updateMacStatus(
+      MacsDetails switchDetails, BuildContext context) async {
     await deleteOneMacs(switchDetails);
-    addMacs(switchDetails, context);
+    addMacs(
+      switchDetails,
+    );
   }
 
   Future<bool> isMacIDExists(
@@ -530,11 +536,13 @@ class StorageController {
     return false;
   }
 
-  void addMacs(MacsDetails macDetails, BuildContext context) async {
+  void addMacs(MacsDetails macDetails) async {
     bool exists =
         await isMacIDExists(macDetails.id, macDetails.switchDetails.switchId);
     if (exists) {
-      final scaffold = ScaffoldMessenger.of(context);
+      final scaffold = ScaffoldMessenger.of(
+        navigatorKey.currentContext!,
+      );
       scaffold.showSnackBar(
         const SnackBar(
           content: Text("MAC ID already Exist for this switch"),
@@ -581,7 +589,8 @@ class StorageController {
   }
 
   // factory Reset
-  deleteEverythingWithRespectToSwitchID(SwitchDetails switchDetails) async {
+  Future<void> deleteEverythingWithRespectToSwitchID(
+      SwitchDetails switchDetails) async {
     debugPrint("Deleting all routers");
     List<RouterDetails> routerList = await readRouters();
     routerList
@@ -615,5 +624,25 @@ class StorageController {
 
   Future<void> deleteAlarm(String key) async {
     await storage.delete(key: key);
+  }
+
+  Future<void> updateSwitchAutoStatus(String switchName, bool status) async {
+    List<SwitchDetails> switchesList = await readSwitches();
+    debugPrint("${switchesList.length}");
+    List listContectsInJson = switchesList.map((e) {
+      return e.toJson();
+    }).toList();
+    for (var element in switchesList) {
+      if (element.switchSSID == switchName) {
+        element.isAutoLock = status;
+        break;
+      }
+    }
+    listContectsInJson = switchesList.map((e) {
+      return e.toJson();
+    }).toList();
+    debugPrint("$listContectsInJson");
+    await deleteSwitches();
+    storage.write(key: "switches", value: json.encode(listContectsInJson));
   }
 }

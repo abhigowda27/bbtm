@@ -1,3 +1,4 @@
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:bbtml_new/widgets/text_field.dart';
 import 'package:flutter/material.dart';
@@ -120,29 +121,33 @@ class PinDialog {
                     if (isResettingPin) {
                       final storedPin = await _storageController.getQrPin();
                       if (storedPin != oldPinController.text) {
-                        showToast(
-                            context, 'Old PIN is incorrect. Please try again.');
+                        showToast(navigatorKey.currentContext!,
+                            'Old PIN is incorrect. Please try again.');
                         return;
                       }
                       if (pinController.text != confirmPinController.text) {
-                        showToast(context,
+                        showToast(navigatorKey.currentContext!,
                             'New PINs do not match. Please try again.');
                         return;
                       }
                       await _storageController.setQrPin(pinController.text);
-                      showToast(context, 'PIN has been reset successfully.');
+                      showToast(navigatorKey.currentContext!,
+                          'PIN has been reset successfully.');
                     } else {
                       if (isFirstTime) {
                         await _storageController.setQrPin(pinController.text);
                       } else {
                         final storedPin = await _storageController.getQrPin();
                         if (storedPin != pinController.text) {
-                          showToast(context, 'Invalid PIN. Please try again.');
+                          showToast(navigatorKey.currentContext!,
+                              'Invalid PIN. Please try again.');
                           return;
                         }
                       }
                     }
-                    Navigator.of(context).pop();
+                    Navigator.of(
+                      navigatorKey.currentContext!,
+                    ).pop();
                     onSuccess();
                   },
                 ),

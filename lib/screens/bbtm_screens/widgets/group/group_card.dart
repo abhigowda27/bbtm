@@ -51,7 +51,7 @@ class _GroupCardState extends State<GroupCard> {
                     offset: const Offset(5, 5),
                   ),
                 ],
-              color: Theme.of(context).appColors.background,
+              color: Theme.of(context).appColors.primary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12))
           : null,
       child: Column(

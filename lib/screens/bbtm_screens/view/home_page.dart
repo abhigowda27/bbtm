@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/home_screen.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/qr/generate_qr.dart';
@@ -11,7 +12,6 @@ import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:open_settings/open_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../controllers/storage.dart';
@@ -146,7 +146,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 child: ElevatedButton(
                   child: const Text("Go To Settings"),
                   onPressed: () async {
-                    await OpenSettings.openLocationSourceSetting();
+                    await AppSettings.openAppSettings(
+                        type: AppSettingsType.location);
                   },
                 ),
               ),
@@ -199,17 +200,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final height = screenSize.height;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).appColors.background,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ImageCarouselWidget(
+      // backgroundColor: Theme.of(context).appColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: ImageCarouselWidget(
               connectionStatus: _connectionStatus,
             ),
-            GridView.builder(
-              padding: const EdgeInsets.all(20.0),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(20.0),
+            sliver: SliverGrid.builder(
               itemCount: lists.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
@@ -223,7 +224,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   onTap: () async {
                     if (item.name == 'Generate QR') {
                       final qrPin = await _storageController.getQrPin();
-                      PinDialog pinDialog = PinDialog(context);
+                      PinDialog pinDialog =
+                          PinDialog(navigatorKey.currentContext!);
                       pinDialog.showPinDialog(
                         isFirstTime: qrPin == null,
                         onSuccess: () {
@@ -247,6 +249,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).appColors.primary.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                           color: Theme.of(context).appColors.primary),
@@ -269,8 +273,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 );
               },
             ),
-          ],
-        ),
+          ),
+          // Bottom image section - fills remaining space and positions image at bottom
+          SliverFillRemaining(
+            hasScrollBody: false, // Prevents extra nested scrolling
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Image.asset(
+                color: Theme.of(context).appColors.textPrimary,
+                'assets/images/place_holder.png', // Replace with your image path (add to pubspec.yaml)
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Column(
@@ -279,7 +295,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           FloatingActionButton(
             heroTag: "wifi",
             onPressed: () {
-              OpenSettings.openWIFISetting();
+              AppSettings.openAppSettings(type: AppSettingsType.wifi);
             },
             child: const Icon(Icons.wifi_find),
           ),
@@ -287,7 +303,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           FloatingActionButton(
             heroTag: "location",
             onPressed: () {
-              OpenSettings.openLocationSourceSetting();
+              AppSettings.openAppSettings(type: AppSettingsType.location);
             },
             child: const Icon(Icons.location_on_rounded),
           ),

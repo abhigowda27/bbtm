@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -84,13 +85,13 @@ class _MacCardState extends State<MacCard> {
       decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade400,
+              color: Theme.of(context).appColors.textSecondary.withOpacity(0.1),
               spreadRadius: 5,
               blurRadius: 7,
-              offset: const Offset(5, 5), // changes position of shadow
+              offset: const Offset(2, 2),
             ),
           ],
-          color: Theme.of(context).appColors.background,
+          color: Theme.of(context).appColors.primary.withOpacity(0.15),
           borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -182,13 +183,11 @@ class _MacCardState extends State<MacCard> {
                         debugPrint(localConnectStatus);
                         if (localConnectStatus !=
                             widget.macsDetails.switchDetails.switchSSID) {
-                          final scaffold = ScaffoldMessenger.of(context);
-                          scaffold.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  "You should be connected to ${widget.macsDetails.switchDetails.switchSSID} to delete the MAC"),
-                            ),
-                          );
+                          showFlutterToast(
+                              "You should be connected to ${widget.macsDetails.switchDetails.switchSSID} to delete the MAC");
+
+                          AppSettings.openAppSettings(
+                              type: AppSettingsType.wifi);
                           return;
                         }
                         showDialog(
@@ -238,17 +237,17 @@ class _MacCardState extends State<MacCard> {
                       String localConnectStatus = _connectionStatus;
                       debugPrint("localConnectStatus");
                       debugPrint(localConnectStatus);
-                      if (localConnectStatus !=
-                          widget.macsDetails.switchDetails.switchSSID) {
-                        final scaffold = ScaffoldMessenger.of(context);
-                        scaffold.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                "You should be connected to ${widget.macsDetails.switchDetails.switchSSID} to refresh the MAC settings"),
-                          ),
-                        );
-                        return;
-                      }
+                      // if (localConnectStatus !=
+                      //     widget.macsDetails.switchDetails.switchSSID) {
+                      //   final scaffold = ScaffoldMessenger.of(context);
+                      //   scaffold.showSnackBar(
+                      //     SnackBar(
+                      //       content: Text(
+                      //           "You should be connected to ${widget.macsDetails.switchDetails.switchSSID} to refresh the MAC settings"),
+                      //     ),
+                      //   );
+                      //   return;
+                      // }
                       setState(() {
                         isSwitched = value;
                       });
@@ -268,13 +267,6 @@ class _MacCardState extends State<MacCard> {
                             {"MacID": widget.macsDetails.id.toLowerCase()});
                       }
                       await _saveMacState(isSwitched);
-                      // Navigator.pushAndRemoveUntil<dynamic>(
-                      //   context,
-                      //   MaterialPageRoute<dynamic>(
-                      //     builder: (BuildContext context) =>   MyNavigationBar(),
-                      //   ),
-                      //       (route) => false,
-                      // );
                     },
                     value: isSwitched,
                     activeColor: Theme.of(context).appColors.primary,

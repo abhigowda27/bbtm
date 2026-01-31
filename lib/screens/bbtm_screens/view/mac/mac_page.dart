@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
+import 'package:bbtml_new/main.dart';
+import 'package:bbtml_new/screens/bbtm_screens/widgets/custom/toast.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +12,6 @@ import '../../controllers/storage.dart';
 import '../../controllers/wifi.dart';
 import '../../models/mac_model.dart';
 import '../../models/switch_model.dart';
-import '../../widgets/custom/toast.dart';
 import '../../widgets/mac_card.dart';
 import 'add_mac.dart';
 
@@ -78,7 +80,7 @@ class _MacsPageState extends State<MacsPage> {
                 debugPrint(">>>>>>>>>>>>>");
                 debugPrint(">>>>>>>>>>>>>");
                 Navigator.push(
-                    context,
+                    navigatorKey.currentContext!,
                     MaterialPageRoute(
                         builder: (context) => NewMacInstallationPage(
                               switchDetails: element,
@@ -87,7 +89,8 @@ class _MacsPageState extends State<MacsPage> {
               }
             }
             debugPrint(_connectionStatus);
-            showToast(context, "You may not be connected to AP Mode.");
+            showFlutterToast("⚠️ You may not be connected to AP Mode.");
+            AppSettings.openAppSettings(type: AppSettingsType.wifi);
             return;
           }),
       key: scaffoldKey,

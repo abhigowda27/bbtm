@@ -1,3 +1,4 @@
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/widgets/mandatory_text.dart';
 import 'package:flutter/material.dart';
 
@@ -71,7 +72,7 @@ class _NewMacInstallationPageState extends State<NewMacInstallationPage> {
                             id: _macID.text,
                             name: _macName.text,
                             isPresentInESP: true);
-                        _storageController.addMacs(macsDetails, context);
+                        _storageController.addMacs(macsDetails);
                         var isExist = await _storageController.isMacIDExists(
                             _macID.text, widget.switchDetails.switchSSID);
                         debugPrint("$isExist");
@@ -86,7 +87,8 @@ class _NewMacInstallationPageState extends State<NewMacInstallationPage> {
                           });
                         }
                         Navigator.push(
-                            context,
+                            navigatorKey
+                                .currentContext!,
                             MaterialPageRoute(
                                 builder: (context) => const TabsPage()));
                       }

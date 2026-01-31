@@ -33,7 +33,7 @@ class _SwitchMatrixCardState extends State<SwitchMatrixCard> {
   void initState() {
     super.initState();
     slNo = widget.index + 1;
-    switchOff = !widget.switchStatus;
+    switchOff = widget.switchStatus;
   }
 
   @override

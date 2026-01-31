@@ -477,7 +477,8 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
                 if (generateType == GenerateType.switches)
                   DropdownMenu(
                     onSelected: (value) async {
-                      switchh = await _storageController.getSwitchBySSID(value);
+                      switchh =
+                          (await _storageController.getSwitchBySSID(value))!;
                     },
                     dropdownMenuEntries: switches
                         .map((e) => DropdownMenuEntry(
@@ -487,7 +488,8 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
                 if (generateType == GenerateType.routers)
                   DropdownMenu(
                     onSelected: (value) async {
-                      router = await _storageController.getRouterByName(value);
+                      router =
+                          (await _storageController.getRouterByName(value))!;
                     },
                     dropdownMenuEntries: routers
                         .map((e) => DropdownMenuEntry(
@@ -498,7 +500,7 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
                 if (generateType == GenerateType.groups)
                   DropdownMenu(
                     onSelected: (value) async {
-                      group = await _storageController.getGroupByName(value);
+                      group = (await _storageController.getGroupByName(value))!;
                     },
                     dropdownMenuEntries: groups
                         .map((e) => DropdownMenuEntry(
@@ -509,7 +511,8 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
                 const Text("Select Contact"),
                 DropdownMenu(
                   onSelected: (value) async {
-                    contact = await _storageController.getContactByPhone(value);
+                    contact = (await _storageController
+                        .getContactByPhone(value ?? ""))!;
                   },
                   dropdownMenuEntries: contacts
                       .map((e) =>

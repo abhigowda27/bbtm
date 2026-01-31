@@ -1,20 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'dart:ui';
 
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:open_settings/open_settings.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../controllers/wifi.dart';
-import '../../widgets/custom/custom_button.dart';
 
 class QRPage extends StatefulWidget {
   final String data;
@@ -151,7 +148,7 @@ class _QRPageState extends State<QRPage> {
     await imgFile.writeAsBytes(pngBytes);
 
     // Share the image
-    await Share.shareFiles([imgFile.path],
+    await Share.shareXFiles([XFile(imgFile.path)],
         text:
             "Enjoy the ease of controlling your switches effortless operation, happy living!");
   }
@@ -165,20 +162,6 @@ class _QRPageState extends State<QRPage> {
     });
     stream.addListener(listener);
     return completer.future;
-  }
-
-  Future _shareQRImage() async {
-    final image = await QrPainter(
-      data: widget.data,
-      version: QrVersions.auto,
-      gapless: false,
-      color: Colors.white,
-    ).toImageData(200.0, format: ImageByteFormat.png);
-    const filename = 'qr_code.png';
-    final tempDir = await getTemporaryDirectory();
-    final file = await File('${tempDir.path}/$filename').create();
-    var bytes = image!.buffer.asUint8List();
-    await file.writeAsBytes(bytes);
   }
 
   @override
@@ -201,7 +184,9 @@ class _QRPageState extends State<QRPage> {
                       backgroundColor: Theme.of(context).appColors.background,
                       version: QrVersions.auto,
                       gapless: true,
-                      foregroundColor: Theme.of(context).appColors.textPrimary,
+                      dataModuleStyle: QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.circle,
+                          color: Theme.of(context).appColors.textPrimary),
                       size: 200.0,
                     ),
                     // Positioned(
@@ -258,13 +243,6 @@ class _QRPageState extends State<QRPage> {
               ),
               const SizedBox(
                 height: 20,
-              ),
-              CustomButton(
-                text: "Open WIFI Settings",
-                icon: Icons.wifi_find,
-                onPressed: () {
-                  OpenSettings.openWIFISetting();
-                },
               ),
             ],
           ),

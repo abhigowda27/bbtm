@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/blocs/switch/switch_bloc.dart';
 import 'package:bbtml_new/blocs/switch/switch_event.dart';
 import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/common/common_state.dart';
+import 'package:bbtml_new/constants.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/routers/connect_to_router.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/routers/router_on_off.dart';
 import 'package:bbtml_new/screens/switches/switch_page_cloud.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
+import 'package:bbtml_new/widgets/common_widgets.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -117,10 +120,10 @@ class _RouterCardState extends State<RouterCard> {
                           .withOpacity(0.1),
                       spreadRadius: 5,
                       blurRadius: 7,
-                      offset: const Offset(5, 5),
+                      offset: const Offset(2, 2),
                     ),
                   ],
-                color: Theme.of(context).appColors.background,
+                color: Theme.of(context).appColors.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12))
             : null,
         child: Column(
@@ -129,214 +132,96 @@ class _RouterCardState extends State<RouterCard> {
           children: [
             Row(
               children: [
-                Text(
-                  "Switch ID : ",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Flexible(
-                  child: Text(
-                    widget.routerDetails.switchID,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                )
-              ],
-            ),
-            Row(
-              children: [
-                Text(
-                  "Switch Name : ",
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Flexible(
-                  child: Text(
-                    widget.routerDetails.switchName,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                )
-              ],
-            ),
-            // Row(
-            //   children: [
-            //     Text(
-            //       "Router Name : ",
-            //       style: Theme.of(context).textTheme.titleMedium,
-            //     ),
-            //     Flexible(
-            //       child: Text(
-            //         widget.routerDetails.routerName,
-            //         style: Theme.of(context).textTheme.bodyLarge,
-            //       ),
-            //     )
-            //   ],
-            // ),
-            if (widget.routerDetails.switchTypes.isNotEmpty) ...[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isExpanded = !isExpanded;
-                      });
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Selected Switches: ${widget.routerDetails.switchTypes.length}",
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        Icon(
-                          isExpanded
-                              ? Icons.keyboard_arrow_up_outlined
-                              : Icons.keyboard_arrow_down_outlined,
-                          size: width * 0.06,
-                          color: Theme.of(context).appColors.textPrimary,
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).appColors.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context)
+                              .appColors
+                              .textSecondary
+                              .withOpacity(0.1),
+                          spreadRadius: 5,
+                          blurRadius: 7,
+                          offset: const Offset(5, 5),
                         ),
                       ],
                     ),
+                    child: Image.asset(
+                        Constants().applianceIconAsset(
+                            widget.routerDetails.switchType ?? ""),
+                        width: width * 0.2,
+                        height: width * 0.2),
                   ),
-                  if (isExpanded) ...[
-                    Column(
-                      children: widget.routerDetails.switchTypes
-                          .asMap()
-                          .entries
-                          .map((entry) {
-                        int index = entry.key;
-                        String switchType = entry.value;
-                        return Row(
-                          children: [
-                            Text(
-                              '${index + 1}: ',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(widget.routerDetails.routerName,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontSize: 18)),
+                          ),
+                          IconButton(
+                              tooltip: "more info",
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                Icons.info_outline,
+                                color: Theme.of(context).appColors.primary,
+                              ),
+                              onPressed: () => showInfo()),
+                        ],
+                      ),
+                      Text(
+                        widget.routerDetails.switchName,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (widget.routerDetails.switchTypes.isNotEmpty) ...[
                             Expanded(
                               child: Text(
-                                switchType,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                "(${widget.routerDetails.switchTypes.length}) Devices",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                             ),
-                            if (widget.showOptions)
-                              IconButton(
-                                padding: const EdgeInsets.all(0),
-                                icon: const Icon(Icons.delete_outline_rounded,
-                                    color: Colors.red),
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text(
-                                        "Delete Switch Type",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
-                                      ),
-                                      content: Text(
-                                        "Are you sure you want to delete \"$switchType\" from this router?",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: Text("Cancel",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          child: Text(
-                                            "Delete",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium
-                                                ?.copyWith(
-                                                    color: Theme.of(context)
-                                                        .appColors
-                                                        .redButton),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-
-                                  if (confirm == true) {
-                                    await _storageController
-                                        .deleteOneSwitchTypeFromRouter(
-                                      switchId: widget.routerDetails.switchID,
-                                      switchTypeToRemove: switchType,
-                                    );
-
-                                    setState(() {
-                                      widget.routerDetails.switchTypes
-                                          .remove(switchType);
-                                    });
-                                  }
-                                },
-                              ),
                           ],
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ],
-              )
-            ],
-            if (widget.routerDetails.selectedFan!.isNotEmpty) ...[
-              Row(
-                children: [
-                  Text(
-                    "Fan Name: ",
-                    style: Theme.of(context).textTheme.titleMedium,
+                          if (widget.routerDetails.selectedFan!.isNotEmpty) ...[
+                            Expanded(
+                              child: Text(
+                                widget.routerDetails.selectedFan!,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
-                  Flexible(
-                    child: Text(
-                      widget.routerDetails.selectedFan!,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            // Row(
-            //   children: [
-            //     Text(
-            //       "Switch PassKey : ",
-            //       style: Theme.of(context).textTheme.titleMedium,
-            //     ),
-            //     Flexible(
-            //       child: Text(
-            //         hide
-            //             ? List.generate(widget.routerDetails.switchPasskey.length,
-            //                 (index) => "*").join()
-            //             : widget.routerDetails.switchPasskey,
-            //         style: Theme.of(context).textTheme.bodyLarge,
-            //       ),
-            //     )
-            //   ],
-            // ),
-            // Row(
-            //   children: [
-            //     Text(
-            //       "Router Password: ",
-            //       style: Theme.of(context).textTheme.titleMedium,
-            //     ),
-            //     Flexible(
-            //       child: Text(
-            //         hide
-            //             ? List.generate(
-            //                 widget.routerDetails.routerPassword.length,
-            //                 (index) => "*").join()
-            //             : widget.routerDetails.routerPassword,
-            //         style: Theme.of(context).textTheme.bodyLarge,
-            //       ),
-            //     )
-            //   ],
-            // ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             if (widget.showOptions) ...[
               Container(
                 decoration: BoxDecoration(
@@ -401,18 +286,6 @@ class _RouterCardState extends State<RouterCard> {
                         },
                         icon: Icon(Icons.delete_outline,
                             color: Theme.of(context).appColors.textPrimary)),
-                    // IconButton(
-                    //     tooltip: "Show Details",
-                    //     onPressed: () {
-                    //       setState(() {
-                    //         hide = !hide;
-                    //       });
-                    //     },
-                    //     icon: hide
-                    //         ? Icon(Icons.visibility_outlined,
-                    //             color: Theme.of(context).appColors.textPrimary)
-                    //         : Icon(Icons.visibility_off_outlined,
-                    //             color: Theme.of(context).appColors.textPrimary)),
                     IconButton(
                         tooltip: "timer",
                         onPressed: () {
@@ -424,8 +297,10 @@ class _RouterCardState extends State<RouterCard> {
                                   .contains(widget.routerDetails.routerName) &&
                               !widget.routerDetails.routerName
                                   .contains(_connectionStatus)) {
-                            showToast(context,
+                            showFlutterToast(
                                 "You should be connected to ${widget.routerDetails.routerName} to add the Proceed");
+                            AppSettings.openAppSettings(
+                                type: AppSettingsType.wifi);
                             return;
                           }
                           Navigator.push(
@@ -534,6 +409,209 @@ class _RouterCardState extends State<RouterCard> {
           ],
         ),
       ),
+    );
+  }
+
+  void showInfo() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).appColors.background.withOpacity(0.75),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.6,
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// ---------- HEADER ----------
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .appColors
+                                  .primary
+                                  .withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Image.asset(
+                              Constants().applianceIconAsset(
+                                widget.routerDetails.switchType ?? "",
+                              ),
+                              width: 45,
+                              height: 45,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              widget.routerDetails.routerName,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.cancel),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      /// ---------- CONTENT ----------
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CommonWidgets().infoRow(
+                                context,
+                                label: "Switch ID",
+                                value: widget.routerDetails.switchID,
+                              ),
+                              CommonWidgets().infoRow(
+                                context,
+                                label: "Switch Name",
+                                value: widget.routerDetails.switchName,
+                              ),
+                              Divider(
+                                  color: Theme.of(context)
+                                      .appColors
+                                      .textSecondary),
+                              if (widget
+                                  .routerDetails.switchTypes.isNotEmpty) ...[
+                                Text(
+                                  "Selected Switches (${widget.routerDetails.switchTypes.length})",
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 8),
+                                ...widget.routerDetails.switchTypes
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  final index = entry.key;
+                                  final switchType = entry.value;
+
+                                  return Card(
+                                    color: Theme.of(context)
+                                        .appColors
+                                        .primary
+                                        .withOpacity(0.5),
+                                    margin:
+                                        const EdgeInsets.symmetric(vertical: 4),
+                                    child: ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundColor: Theme.of(context)
+                                            .appColors
+                                            .primary
+                                            .withOpacity(0.5),
+                                        child: Text("${index + 1}"),
+                                      ),
+                                      titleTextStyle: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                      title: Text(switchType),
+                                      trailing: IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () async {
+                                          final confirm =
+                                              await showDialog<bool>(
+                                            context: context,
+                                            builder: (_) => AlertDialog(
+                                              title:
+                                                  const Text("Delete Switch"),
+                                              content: Text(
+                                                  'Are you sure you want to delete "$switchType"?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, false),
+                                                  child: const Text("Cancel"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, true),
+                                                  child: Text(
+                                                    "Delete",
+                                                    style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .appColors
+                                                          .redButton,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+
+                                          if (confirm == true) {
+                                            _storageController
+                                                .deleteOneSwitchTypeFromRouter(
+                                              switchId:
+                                                  widget.routerDetails.switchID,
+                                              switchTypeToRemove: switchType,
+                                            );
+                                            setState(() {
+                                              widget.routerDetails.switchTypes
+                                                  .removeAt(index);
+                                            });
+                                            setDialogState(() {});
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                Divider(
+                                    color: Theme.of(context)
+                                        .appColors
+                                        .textSecondary),
+                              ],
+                              if (widget
+                                      .routerDetails.selectedFan?.isNotEmpty ==
+                                  true)
+                                CommonWidgets().infoRow(
+                                  context,
+                                  label: "Selected Fan",
+                                  value: widget.routerDetails.selectedFan!,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Close"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

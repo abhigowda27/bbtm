@@ -24,10 +24,10 @@ class ContactsCard extends StatelessWidget {
               color: Theme.of(context).appColors.textSecondary.withOpacity(0.1),
               spreadRadius: 5,
               blurRadius: 7,
-              offset: const Offset(5, 5), // changes position of shadow
+              offset: const Offset(2, 2),
             ),
           ],
-          color: Theme.of(context).appColors.background,
+          color: Theme.of(context).appColors.primary.withOpacity(0.15),
           borderRadius: BorderRadius.circular(12)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

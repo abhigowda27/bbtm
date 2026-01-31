@@ -1,7 +1,12 @@
+import 'dart:convert';
+
+import 'package:bbtml_new/main.dart';
+import 'package:bbtml_new/screens/bbtm_screens/models/appliance_model.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:bbtml_new/widgets/mandatory_text.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../constants.dart';
 import '../../../../controllers/apis.dart';
@@ -25,6 +30,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
   @override
   void initState() {
     super.initState();
+    _loadAppliances();
     _password.text = widget.switchDetails.switchPassword;
     _password1.text = widget.switchDetails.switchPassword;
     _ssid.text = widget.switchDetails.switchSSID;
@@ -42,6 +48,22 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
     } else {
       _fanRequired = false;
     }
+  }
+
+  List<Appliance> _appliances = [];
+  Appliance? _selectedAppliance;
+
+  Future<void> _loadAppliances() async {
+    final jsonString =
+        await rootBundle.loadString('assets/json/appliances_data.json');
+
+    final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+    setState(() {
+      _appliances = (jsonData['appliances'] as List)
+          .map((e) => Appliance.fromJson(e))
+          .toList();
+    });
   }
 
   bool _showPassword = false;
@@ -73,9 +95,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                richTxt(
-                  text: "Switch Name",
-                ),
+                richTxt(text: "Switch Name"),
                 CustomTextField(
                   controller: _ssid,
                   validator: (value) {
@@ -84,9 +104,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   },
                   hintText: "New Switch Name",
                 ),
-                richTxt(
-                  text: "Switch Password",
-                ),
+                richTxt(text: "Switch Password"),
                 CustomTextField(
                   obscureText: !_showPassword,
                   controller: _password,
@@ -110,9 +128,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   ),
                   hintText: "New Password",
                 ),
-                richTxt(
-                  text: "Confirm Password",
-                ),
+                richTxt(text: "Confirm Password"),
                 CustomTextField(
                   obscureText: !_showConfirmPassword,
                   controller: _password1,
@@ -139,9 +155,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   },
                   hintText: "New Password",
                 ),
-                richTxt(
-                  text: "PIN",
-                ),
+                richTxt(text: "PIN"),
                 CustomTextField(
                   maxLength: 4,
                   controller: _privatePin,
@@ -153,9 +167,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   },
                   hintText: "New Pin",
                 ),
-                richTxt(
-                  text: "Switch PassKey",
-                ),
+                richTxt(text: "Switch PassKey"),
                 CustomTextField(
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -172,6 +184,25 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   },
                   controller: _passKey,
                   hintText: "New Passkey",
+                ),
+                richTxt(text: "Select Switch Type"),
+                GestureDetector(
+                  onTap: () => _showApplianceBottomSheet(),
+                  child: AbsorbPointer(
+                    child: CustomTextField(
+                      controller: TextEditingController(
+                        text: _selectedAppliance?.name ?? "",
+                      ),
+                      validator: (_) {
+                        if (_selectedAppliance == null) {
+                          return "Please select an appliance";
+                        }
+                        return null;
+                      },
+                      hintText: "Select Appliance",
+                      suffixIcon: const Icon(Icons.keyboard_arrow_down),
+                    ),
+                  ),
                 ),
                 Row(
                   children: [
@@ -307,6 +338,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                 width: 200,
                 text: "Submit",
                 onPressed: () async {
+                  debugPrint(_selectedAppliance?.code);
                   if (formKey.currentState!.validate()) {
                     SwitchDetails switchDetails1 = SwitchDetails(
                       privatePin: _privatePin.text,
@@ -315,6 +347,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       switchPassKey: _passKey.text,
                       switchPassword: _password.text,
                       iPAddress: widget.switchDetails.iPAddress,
+                      switchType: _selectedAppliance?.code,
                       switchTypes:
                           _switchTypeControllers.map((c) => c.text).toList(),
                       selectedFan: _selectedFanController.text,
@@ -344,7 +377,8 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       _storageController.updateSwitch(
                           switchDetails1.switchId, switchDetails1);
                       Navigator.pushAndRemoveUntil<dynamic>(
-                        context,
+                        navigatorKey
+                            .currentContext!,
                         MaterialPageRoute<dynamic>(
                           builder: (BuildContext context) => const TabsPage(),
                         ),
@@ -362,7 +396,8 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       _storageController.updateSwitch(
                           switchDetails1.switchId, switchDetails1);
                       Navigator.pushAndRemoveUntil<dynamic>(
-                        context,
+                        navigatorKey
+                            .currentContext!,
                         MaterialPageRoute<dynamic>(
                           builder: (BuildContext context) => const TabsPage(),
                         ),
@@ -370,7 +405,8 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       );
                     } catch (e) {
                       debugPrint(e.toString());
-                      showToast(context, "Failed to Update. Try again");
+                      showToast(navigatorKey
+                          .currentContext!, "Failed to Update. Try again");
                       setState(() {
                         loading = false;
                       });
@@ -379,6 +415,99 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                 },
               ),
       ),
+    );
+  }
+
+  void _showApplianceBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 0.8,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.grey.shade500,
+                automaticallyImplyLeading: false,
+                title: Column(
+                  children: [
+                    Container(
+                      height: 4,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    Text(
+                      "Select Switch Type",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                ),
+              ),
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: ListView.separated(
+                      separatorBuilder: (_, index) {
+                        return const SizedBox(height: 10);
+                      },
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _appliances.length,
+                      itemBuilder: (_, index) {
+                        final appliance = _appliances[index];
+                        return ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              width: 2,
+                              color: _selectedAppliance?.id == appliance.id
+                                  ? Theme.of(context).appColors.buttonBackground
+                                  : Theme.of(context)
+                                      .appColors
+                                      .grey
+                                      .withOpacity(0.5),
+                            ),
+                          ),
+                          leading: Image.asset(
+                            Constants().applianceIconAsset(appliance.code),
+                            height: 50,
+                            width: 50,
+                            fit: BoxFit.contain,
+                          ),
+                          titleTextStyle:
+                              Theme.of(context).textTheme.titleMedium,
+                          subtitleTextStyle:
+                              Theme.of(context).textTheme.titleSmall,
+                          title: Text(appliance.name),
+                          subtitle: Text(appliance.category),
+                          trailing: _selectedAppliance?.id == appliance.id
+                              ? const Icon(Icons.check_circle_rounded,
+                                  color: Colors.green)
+                              : null,
+                          onTap: () {
+                            setState(() {
+                              _selectedAppliance = appliance;
+                            });
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

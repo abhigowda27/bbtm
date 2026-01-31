@@ -2,6 +2,7 @@ import 'package:bbtml_new/blocs/switch/switch_bloc.dart';
 import 'package:bbtml_new/blocs/switch/switch_event.dart';
 import 'package:bbtml_new/common/api_status.dart';
 import 'package:bbtml_new/common/common_state.dart';
+import 'package:bbtml_new/common/search_utils.dart';
 import 'package:bbtml_new/screens/switches/widgets/multi_switch_list.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:bbtml_new/widgets/common_snackbar.dart';
@@ -54,20 +55,15 @@ class _SwitchesCardState extends State<SwitchesCard> {
 
   /// 🔍 Filter logic
   void filterDevices(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        filteredDeviceList = List.from(deviceList);
-      });
-      return;
-    }
-
     setState(() {
-      filteredDeviceList = deviceList.where((device) {
-        final name = (device["device_name"] ?? "").toString().toLowerCase();
-        final id = (device["device_id"] ?? "").toString().toLowerCase();
-        return name.contains(query.toLowerCase()) ||
-            id.contains(query.toLowerCase());
-      }).toList();
+      filteredDeviceList = smartFilter<dynamic>(
+        deviceList,
+        query,
+        [
+          (item) => item["device_name"]?.toString() ?? "",
+          (item) => item["device_id"]?.toString() ?? "",
+        ],
+      );
     });
   }
 
@@ -275,387 +271,396 @@ class _SwitchesCardState extends State<SwitchesCard> {
           }
         },
         builder: (context, state) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              // color:
-              //     Theme.of(context).appColors.buttonBackground.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context)
-                      .appColors
-                      .buttonBackground
-                      .withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 8,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-              border: Border.all(
-                  color: Theme.of(context).appColors.buttonBackground),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (deviceDetails["title"] != null &&
-                    deviceDetails["title"].isNotEmpty) ...[
-                  Text(
-                    deviceDetails["title"] ?? "",
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  // const SizedBox(height: 10),
-                ],
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+          return Card(
+            elevation: 1,
+            borderOnForeground: true,
+            color: Theme.of(context).appColors.background,
+            // padding: const EdgeInsets.all(16),
+            // decoration: BoxDecoration(
+            //   boxShadow: [
+            //     BoxShadow(
+            //       color: Theme.of(context)
+            //           .appColors
+            //           .textSecondary
+            //           .withOpacity(0.1),
+            //       spreadRadius: 5,
+            //       blurRadius: 7,
+            //       offset: const Offset(5, 5),
+            //     ),
+            //   ],
+            //   color: Theme.of(context).appColors.background,
+            //   borderRadius: BorderRadius.circular(12),
+            //   // border: Border.all(color: Theme.of(context).appColors.primary),
+            // ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (deviceDetails["title"] != null &&
+                      deviceDetails["title"].isNotEmpty) ...[
                     Text(
-                      "View Mode:",
-                      style: Theme.of(context).textTheme.titleMedium,
+                      deviceDetails["title"] ?? "",
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(width: 10),
-                    ToggleButtons(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(5),
-                      selectedColor: Theme.of(context).appColors.primary,
-                      fillColor:
-                          Theme.of(context).appColors.primary.withOpacity(0.1),
-                      borderColor: Theme.of(context).dividerColor,
-                      selectedBorderColor: Theme.of(context).appColors.primary,
-                      constraints:
-                          const BoxConstraints(minHeight: 30, minWidth: 40),
-                      isSelected: [_gridColumns == 2, _gridColumns == 3],
-                      onPressed: (index) {
-                        setState(() {
-                          _gridColumns = (index == 0) ? 2 : 3;
-                        });
-                      },
-                      children: const [
-                        Tooltip(
-                          message: "2 Columns",
-                          child: Icon(FontAwesomeIcons.tableCellsLarge),
-                        ),
-                        Tooltip(
-                          message: "3 Columns",
-                          child: Icon(Icons.grid_on_outlined),
-                        ),
-                      ],
-                    ),
+                    // const SizedBox(height: 10),
                   ],
-                ),
-                filteredDeviceList.isNotEmpty
-                    ? GridView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: _gridColumns,
-                          childAspectRatio: _gridColumns == 2 ? 1 : 0.8,
-                          crossAxisSpacing: _gridColumns == 2 ? 20 : 15,
-                          mainAxisSpacing: _gridColumns == 2 ? 25 : 20,
-                        ),
-                        shrinkWrap: true,
-                        itemCount: filteredDeviceList.length,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final device0 = filteredDeviceList[index];
-                          final imageUrl = device0["details"]["icon"] ?? "";
-                          int status = device0["details"]["status"] ?? 0;
-                          debugPrint("${device0.runtimeType}");
-                          return InkWell(
-                            onTap: () async {
-                              (device0["device_type"] == 3)
-                                  ? await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              MultiDevicesWidget(
-                                                deleteDevice: deleteDevice,
-                                                statusList: statusList,
-                                                switches: device0,
-                                                fanStatusList: fanStatusList,
-                                              )))
-                                  : _showDeviceDialog(context, device0);
-                              debugPrint("Calling onchanged");
-                              widget.onChanged.call();
-                            },
-                            child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  // border: Border.all(
-                                  //     color: Theme.of(context)
-                                  //         .appColors
-                                  //         .buttonBackground),
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Theme.of(context).appColors.primary,
-                                      Theme.of(context)
-                                          .appColors
-                                          .buttonBackground
-                                          .withOpacity(0.2),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Theme.of(context)
-                                          .appColors
-                                          .textPrimary
-                                          .withOpacity(0.1),
-                                      blurRadius: 5,
-                                      offset: const Offset(2, 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "View Mode:",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(width: 10),
+                      ToggleButtons(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(5),
+                        selectedColor: Theme.of(context).appColors.primary,
+                        fillColor: Theme.of(context)
+                            .appColors
+                            .primary
+                            .withOpacity(0.1),
+                        borderColor: Theme.of(context).dividerColor,
+                        selectedBorderColor:
+                            Theme.of(context).appColors.primary,
+                        constraints:
+                            const BoxConstraints(minHeight: 30, minWidth: 40),
+                        isSelected: [_gridColumns == 2, _gridColumns == 3],
+                        onPressed: (index) {
+                          setState(() {
+                            _gridColumns = (index == 0) ? 2 : 3;
+                          });
+                        },
+                        children: const [
+                          Tooltip(
+                            message: "2 Columns",
+                            child: Icon(FontAwesomeIcons.tableCellsLarge),
+                          ),
+                          Tooltip(
+                            message: "3 Columns",
+                            child: Icon(Icons.grid_on_outlined),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  filteredDeviceList.isNotEmpty
+                      ? GridView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: _gridColumns,
+                            childAspectRatio: _gridColumns == 2 ? 1 : 0.7,
+                            crossAxisSpacing: _gridColumns == 2 ? 15 : 10,
+                            mainAxisSpacing: _gridColumns == 2 ? 15 : 10,
+                          ),
+                          shrinkWrap: true,
+                          itemCount: filteredDeviceList.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final device0 = filteredDeviceList[index];
+                            final imageUrl = device0["details"]["icon"] ?? "";
+                            int status = device0["details"]["status"] ?? 0;
+                            debugPrint("${device0.runtimeType}");
+                            return InkWell(
+                              onTap: () async {
+                                (device0["device_type"] == 3)
+                                    ? await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                MultiDevicesWidget(
+                                                  deleteDevice: deleteDevice,
+                                                  statusList: statusList,
+                                                  switches: device0,
+                                                  fanStatusList: fanStatusList,
+                                                )))
+                                    : _showDeviceDialog(context, device0);
+                                debugPrint("Calling onchanged");
+                                widget.onChanged.call();
+                              },
+                              child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: _gridColumns == 2 ? 12 : 8,
+                                      vertical: 5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    // border: Border.all(
+                                    //     color: Theme.of(context)
+                                    //         .appColors
+                                    //         .buttonBackground),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Theme.of(context).appColors.primary,
+                                        Theme.of(context)
+                                            .appColors
+                                            .buttonBackground
+                                            .withOpacity(0.2),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
-                                  ],
-                                ),
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Center(
-                                        child: CachedNetworkImage(
-                                          imageUrl: imageUrl ?? "",
-                                          height: _gridColumns == 2 ? 60 : 45,
-                                          width: _gridColumns == 2 ? 60 : 45,
-                                          color: Theme.of(context)
-                                              .appColors
-                                              .background,
-                                          placeholder: (context, url) =>
-                                              Shimmer.fromColors(
-                                            baseColor: Colors.grey.shade300,
-                                            highlightColor:
-                                                Colors.grey.shade100,
-                                            child: Container(
-                                              height: screenWidth * 0.1,
-                                              width: screenWidth * 0.1,
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                            ),
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              Icon(
-                                            Icons.image_outlined,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Theme.of(context)
+                                            .appColors
+                                            .textPrimary
+                                            .withOpacity(0.1),
+                                        blurRadius: 5,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Center(
+                                          child: CachedNetworkImage(
+                                            imageUrl: imageUrl ?? "",
+                                            height: _gridColumns == 2
+                                                ? screenWidth * 0.12
+                                                : screenWidth * 0.1,
+                                            width: _gridColumns == 2
+                                                ? screenWidth * 0.12
+                                                : screenWidth * 0.1,
                                             color: Theme.of(context)
                                                 .appColors
-                                                .textPrimary
-                                                .withOpacity(0.3),
-                                            size: screenWidth * 0.1,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        device0["device_name"] ?? "",
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                                fontSize:
-                                                    _gridColumns == 2 ? 16 : 14,
-                                                color: Theme.of(context)
-                                                    .appColors
-                                                    .background),
-                                      ),
-                                      Row(
-                                        children: [
-                                          // 🟢 Status dot
-                                          Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              color: status == 1
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                              shape: BoxShape.circle,
+                                                .background,
+                                            placeholder: (context, url) =>
+                                                Shimmer.fromColors(
+                                              baseColor: Colors.grey.shade300,
+                                              highlightColor:
+                                                  Colors.grey.shade100,
+                                              child: Container(
+                                                height: screenWidth * 0.1,
+                                                width: screenWidth * 0.1,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) => Icon(
+                                              Icons.image_outlined,
+                                              color: Theme.of(context)
+                                                  .appColors
+                                                  .textPrimary
+                                                  .withOpacity(0.3),
+                                              size: screenWidth * 0.1,
                                             ),
                                           ),
-                                          const SizedBox(width: 6),
-
-                                          // 📝 Status text
-                                          Text(
-                                            status == 1 ? "On" : "Off",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
+                                        ),
+                                        Text(
+                                          device0["device_name"] ?? "",
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall
+                                              ?.copyWith(
+                                                  fontSize: _gridColumns == 2
+                                                      ? 14
+                                                      : 12,
                                                   color: Theme.of(context)
                                                       .appColors
-                                                      .background,
-                                                ),
-                                          ),
-                                        ],
-                                      )
-                                    ])),
-                          );
-                        },
-                      )
-                    : Center(child: Text("No Devices"))
-              ],
+                                                      .background),
+                                        ),
+                                        Row(
+                                          children: [
+                                            // 🟢 Status dot
+                                            Container(
+                                              width: _gridColumns == 2 ? 12 : 8,
+                                              height:
+                                                  _gridColumns == 2 ? 12 : 8,
+                                              decoration: BoxDecoration(
+                                                color: status == 1
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+
+                                            // 📝 Status text
+                                            Text(
+                                              status == 1 ? "On" : "Off",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                    fontSize: _gridColumns == 2
+                                                        ? 12
+                                                        : 10,
+                                                    color: Theme.of(context)
+                                                        .appColors
+                                                        .background,
+                                                  ),
+                                            ),
+                                          ],
+                                        )
+                                      ])),
+                            );
+                          },
+                        )
+                      : const Center(child: Text("No Devices"))
+                ],
+              ),
             ),
           );
         });
   }
 
   void _showDeviceDialog(BuildContext context, Map<String, dynamic> device0) {
-    showDialog(
-      barrierDismissible: false,
+    showModalBottomSheet(
+      isDismissible: true,
       context: context,
+      backgroundColor: Theme.of(context).appColors.background.withOpacity(0.8),
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).appColors.background.withOpacity(0.95),
+                Theme.of(context).appColors.buttonBackground.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(8),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).appColors.background.withOpacity(0.95),
-                  Theme.of(context).appColors.buttonBackground.withOpacity(0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "${device0["device_name"] ?? ""} Controls",
-                        style: Theme.of(context).textTheme.headlineMedium,
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "${device0["device_name"] ?? ""} Controls",
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        deleteDevice(context, device0);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: Theme.of(context).appColors.red,
+                        ),
                       ),
                     ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () {
-                          deleteDevice(context, device0);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Icon(
-                            Icons.delete_outline,
-                            color: Theme.of(context).appColors.red,
+                  ),
+                ],
+              ),
+              Divider(
+                color: Theme.of(context).appColors.textPrimary.withOpacity(0.1),
+                thickness: 1,
+              ),
+              const SizedBox(height: 8),
+              device0["device_type"] == 2
+                  ? FanSpeedControl(
+                      deviceId: device0["device_id"],
+                      fanStatusList: fanStatusList,
+                      fanStatus: device0["details"]["statusTxt"] ?? "",
+                      device: device0,
+                      toggleSwitch: toggleSwitch,
+                      deviceType: device0["device_type"],
+                    )
+                  : ToggleButtons(
+                      constraints: const BoxConstraints(
+                        minWidth: 100,
+                        minHeight: 100,
+                      ),
+                      borderRadius: BorderRadius.circular(50),
+                      isSelected: [switchStates[device0["device_id"]] ?? false],
+                      fillColor: Theme.of(context).appColors.green,
+                      selectedColor: Theme.of(context).appColors.greenButton,
+                      color: Theme.of(context).appColors.redButton,
+                      onPressed: (index) {
+                        final newValue =
+                            !(switchStates[device0["device_id"]] ?? false);
+
+                        toggleSwitch(
+                          device0["device_id"] ?? "",
+                          newValue ? "ON" : "OFF",
+                          device0["uid"] ?? "",
+                          device0["device_type"] ?? 0,
+                        );
+
+                        (context as Element).markNeedsBuild(); // refresh
+
+                        setState(() {
+                          switchStates[device0["device_id"]] = newValue;
+                        });
+                      },
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeInOut,
+                          decoration: BoxDecoration(
+                            color: (switchStates[device0["device_id"]] ?? false)
+                                ? Theme.of(context).appColors.green
+                                : Theme.of(context).appColors.red,
+                            borderRadius: BorderRadius.circular(50),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (switchStates[device0["device_id"]] ??
+                                        false)
+                                    ? Colors.green.withOpacity(0.5)
+                                    : Colors.red.withOpacity(0.5),
+                                blurRadius: 15,
+                                spreadRadius: 3,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Divider(
-                  color:
-                      Theme.of(context).appColors.textPrimary.withOpacity(0.1),
-                  thickness: 1,
-                ),
-                const SizedBox(height: 8),
-                device0["device_type"] == 2
-                    ? FanSpeedControl(
-                        deviceId: device0["device_id"],
-                        fanStatusList: fanStatusList,
-                        fanStatus: device0["details"]["statusTxt"] ?? "",
-                        device: device0,
-                        toggleSwitch: toggleSwitch,
-                        deviceType: device0["device_type"],
-                      )
-                    : ToggleButtons(
-                        constraints: const BoxConstraints(
-                          minWidth: 100,
-                          minHeight: 100,
-                        ),
-                        borderRadius: BorderRadius.circular(50),
-                        isSelected: [
-                          switchStates[device0["device_id"]] ?? false
-                        ],
-                        fillColor: Theme.of(context).appColors.green,
-                        selectedColor: Theme.of(context).appColors.greenButton,
-                        color: Theme.of(context).appColors.redButton,
-                        onPressed: (index) {
-                          final newValue =
-                              !(switchStates[device0["device_id"]] ?? false);
-
-                          toggleSwitch(
-                            device0["device_id"] ?? "",
-                            newValue ? "ON" : "OFF",
-                            device0["uid"] ?? "",
-                            device0["device_type"] ?? 0,
-                          );
-
-                          (context as Element).markNeedsBuild(); // refresh
-
-                          setState(() {
-                            switchStates[device0["device_id"]] = newValue;
-                          });
-                        },
-                        children: [
-                          AnimatedContainer(
+                          padding: const EdgeInsets.all(30),
+                          child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut,
-                            decoration: BoxDecoration(
-                              color:
-                                  (switchStates[device0["device_id"]] ?? false)
-                                      ? Theme.of(context).appColors.green
-                                      : Theme.of(context).appColors.red,
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (switchStates[device0["device_id"]] ??
-                                          false)
-                                      ? Colors.green.withOpacity(0.5)
-                                      : Colors.red.withOpacity(0.5),
-                                  blurRadius: 15,
-                                  spreadRadius: 3,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(
+                              scale: animation,
+                              child: child,
                             ),
-                            padding: const EdgeInsets.all(30),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 400),
-                              transitionBuilder: (child, animation) =>
-                                  ScaleTransition(
-                                scale: animation,
-                                child: child,
-                              ),
-                              child: Icon(
-                                Icons.power_settings_new_outlined,
-                                key: ValueKey<bool>(
-                                    switchStates[device0["device_id"]] ??
-                                        false),
-                                size: 40,
-                              ),
+                            child: Icon(
+                              Icons.power_settings_new_outlined,
+                              key: ValueKey<bool>(
+                                  switchStates[device0["device_id"]] ?? false),
+                              size: 40,
                             ),
-                          )
-                        ],
-                      ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Close"),
-                ),
-              ],
-            ),
+                          ),
+                        )
+                      ],
+                    ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Close"),
+              ),
+            ],
           ),
         );
       },

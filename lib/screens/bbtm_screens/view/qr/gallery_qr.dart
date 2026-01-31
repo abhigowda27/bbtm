@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:app_settings/app_settings.dart';
+import 'package:bbtml_new/screens/bbtm_screens/controllers/wifi.dart';
+import 'package:bbtml_new/screens/bbtm_screens/widgets/custom/toast.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:scan/scan.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../models/switch_model.dart';
 import '../../widgets/custom/custom_button.dart';
@@ -16,7 +22,12 @@ class GalleryQRPage extends StatefulWidget {
   State<GalleryQRPage> createState() => _GalleryQRPageState();
 }
 
-class _GalleryQRPageState extends State<GalleryQRPage> {
+class _GalleryQRPageState extends State<GalleryQRPage>
+    with WidgetsBindingObserver {
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
+  late NetworkService _networkService;
+
   SwitchDetails details = SwitchDetails(
     switchId: "Unknown",
     switchSSID: "Unknown",
@@ -30,238 +41,302 @@ class _GalleryQRPageState extends State<GalleryQRPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _networkService = NetworkService();
+    _initNetworkInfo();
+    connectivitySubscription = _connectivity.onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      _updateConnectionStatus(results);
+    });
     scanQR();
   }
 
+  String _connectionStatus = 'Unknown';
+  Future<void> _updateConnectionStatus(
+          List<ConnectivityResult> results) async =>
+      _initNetworkInfo();
+
+  Future<void> _initNetworkInfo() async {
+    String? wifiName = await _networkService.initNetworkInfo();
+    setState(() => _connectionStatus = wifiName ?? "Unknown");
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      _initNetworkInfo();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+
+    connectivitySubscription?.cancel();
+    super.dispose();
+  }
+
+  // Future<void> scanQR() async {
+  //   final picker = ImagePicker();
+  //   final XFile? pickedFile =
+  //       await picker.pickImage(source: ImageSource.gallery);
+  //   if (pickedFile != null) {
+  //     try {
+  //       String? barcodeScanRes = await Scan.parse(pickedFile.path);
+  //       if (barcodeScanRes != null) {
+  //         setState(() {
+  //           // var jsonR = json.decode(barcodeScanRes);
+  //           // debugPrint(jsonR);
+  //           // details = SwitchDetails(
+  //           //     switchId: jsonR['LockId'],
+  //           //     privatePin: "1234",
+  //           //     switchSSID: jsonR['LockSSID'],
+  //           //     switchPassword: jsonR['LockPassword'].toString(),
+  //           //     iPAddress: jsonR['IPAddress'],
+  //           //     switchTypes: [],
+  //           //     selectedFan: "");
+  //           var jsonR = json.decode(barcodeScanRes);
+  //           debugPrint(jsonR.toString());
+  //           debugPrint(jsonEncode(jsonEncode(jsonR)));
+  //
+  //           details = SwitchDetails(
+  //               switchId: jsonR['SwitchId'],
+  //               privatePin: jsonR['privatePin'],
+  //               switchSSID: jsonR['SwitchSSID'],
+  //               switchPassword: jsonR['SwitchPassword'],
+  //               iPAddress: jsonR['IPAddress'],
+  //               switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
+  //                   .map((e) => e.toString())
+  //                   .toList(),
+  //               switchPassKey: jsonR['SwitchPasskey'],
+  //               selectedFan: jsonR['SelectedFan']);
+  //         });
+  //       } else {
+  //         // Handle null result from QR parsing
+  //         // You can show an error message or take appropriate action
+  //         debugPrint("QR code not found in the selected image.");
+  //       }
+  //     } catch (e) {
+  //       debugPrint("$e");
+  //     }
+  //   }
+  // }
   Future<void> scanQR() async {
     final picker = ImagePicker();
     final XFile? pickedFile =
         await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      try {
-        String? barcodeScanRes = await Scan.parse(pickedFile.path);
-        if (barcodeScanRes != null) {
-          setState(() {
-            var jsonR = json.decode(barcodeScanRes);
-            debugPrint(jsonR);
-            details = SwitchDetails(
-                switchId: jsonR['LockId'],
-                privatePin: "1234",
-                switchSSID: jsonR['LockSSID'],
-                switchPassword: jsonR['LockPassword'].toString(),
-                iPAddress: jsonR['IPAddress'],
-                switchTypes: [],
-                selectedFan: "");
-            /*var jsonR = json.decode(barcodeScanRes);
-            debugPrint(jsonR.toString());
 
-            details = SwitchDetails(
-                switchId: jsonR['SwitchId'],
-                privatePin: jsonR['privatePin'],
-                switchSSID: jsonR['SwitchSSID'],
-                switchPassword: jsonR['SwitchPassword'],
-                iPAddress: jsonR['IPAddress'],
-                switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
-                    .map((e) => e.toString())
-                    .toList(),
-                switchPassKey: jsonR['SwitchPasskey'],
-                selectedFan: jsonR['SelectedFan']);*/
-          });
-        } else {
-          // Handle null result from QR parsing
-          // You can show an error message or take appropriate action
-          debugPrint("QR code not found in the selected image.");
-        }
-      } catch (e) {
-        debugPrint("$e");
+    if (pickedFile == null) return;
+
+    final controller = MobileScannerController();
+
+    try {
+      final BarcodeCapture? capture =
+          await controller.analyzeImage(pickedFile.path);
+
+      if (capture == null || capture.barcodes.isEmpty) {
+        debugPrint("QR code not found in the selected image.");
+        return;
       }
+
+      final String? barcodeScanRes = capture.barcodes.first.rawValue;
+
+      if (barcodeScanRes == null || barcodeScanRes.isEmpty) {
+        debugPrint("QR value is empty.");
+        return;
+      }
+
+      debugPrint(barcodeScanRes);
+
+      final jsonR = json.decode(barcodeScanRes);
+      debugPrint(jsonR.toString());
+
+      if (!mounted) return;
+
+      setState(() {
+        details = SwitchDetails(
+          switchId: jsonR['SwitchId'],
+          privatePin: jsonR['privatePin'],
+          switchSSID: jsonR['SwitchSSID'],
+          switchPassword: jsonR['SwitchPassword'],
+          iPAddress: jsonR['IPAddress'],
+          switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList(),
+          switchPassKey: jsonR['SwitchPasskey'],
+          selectedFan: jsonR['SelectedFan'],
+        );
+      });
+    } catch (e) {
+      debugPrint("Failed to scan QR: $e");
+    } finally {
+      controller.dispose();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final width = screenSize.width;
-    if (details.switchId == "Unknown") {
-      return Center(
-          child: CircularProgressIndicator(
-              color: Theme.of(context).appColors.buttonBackground));
-    }
     return Scaffold(
-      appBar: AppBar(title: const Text("QR Details")),
-      body: SafeArea(
-        top: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(
-              height: 20,
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  width: MediaQuery.of(context).size.width * .8,
-                  height: 180,
-                  decoration: BoxDecoration(
+        appBar: AppBar(title: const Text("QR Details")),
+        body: details.switchId == "Unknown"
+            ? Center(
+                child: CircularProgressIndicator(
+                    color: Theme.of(context).appColors.buttonBackground))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).appColors.background,
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.shade400,
-                          spreadRadius: 5,
-                          blurRadius: 7,
-                          offset: const Offset(5, 5),
+                          color: Theme.of(context)
+                              .appColors
+                              .textSecondary
+                              .withOpacity(0.4),
+                          spreadRadius: 2,
+                          blurRadius: 1,
+                          offset: const Offset(2, 4),
                         ),
                       ],
-                      color: Theme.of(context).appColors.background,
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              "Switch ID : ",
-                              style: TextStyle(
-                                  fontSize: width * 0.045,
-                                  color:
-                                      Theme.of(context).appColors.textPrimary,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Wrap(
-                              children: [
-                                Text(
-                                  details.switchId,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: width * 0.045,
-                                      color: Theme.of(context)
-                                          .appColors
-                                          .textPrimary,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                              ],
-                            )
-                          ],
+                        _buildInfoRow(
+                          context,
+                          title: "Switch ID",
+                          value: details.switchId,
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              "Switch Name : ",
-                              style: TextStyle(
-                                  fontSize: width * 0.045,
-                                  color:
-                                      Theme.of(context).appColors.textPrimary,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Wrap(
-                              children: [
-                                Text(
-                                  details.switchSSID,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: width * 0.045,
-                                      color: Theme.of(context)
-                                          .appColors
-                                          .textPrimary,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                              ],
-                            )
-                          ],
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          context,
+                          title: "Switch Name",
+                          value: details.switchSSID,
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              "Switch Password : ",
-                              style: TextStyle(
-                                  fontSize: width * 0.045,
-                                  color:
-                                      Theme.of(context).appColors.textPrimary,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              details.switchPassword,
-                              style: TextStyle(
-                                  fontSize: width * 0.045,
-                                  color:
-                                      Theme.of(context).appColors.textPrimary,
-                                  fontWeight: FontWeight.w400),
-                            )
-                          ],
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          context,
+                          title: "Switch Password",
+                          value: details.switchPassword,
                         ),
-
-                        const Expanded(
-                          child: Text(
-                            "Please NOTE down the password you will need to configure and change the Switch",
-                            style: TextStyle(
-                              fontSize: 18,
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .appColors
+                                .primary
+                                .withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Theme.of(context)
+                                  .appColors
+                                  .primary
+                                  .withOpacity(0.3),
                             ),
-                            textAlign: TextAlign.justify,
                           ),
+                          child: Text(
+                              "⚠️ Action required: Connect to WiFi '${details.switchSSID}' with the given password before proceeding.",
+                              style: Theme.of(context).textTheme.labelLarge),
                         ),
-                        // Text("Start and End Date : 00-00"),
-                        // Text("Start and End Time : 00:00-00:00"),
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Center(
-              child: CustomButton(
-                  width: 200,
-                  text: "Next",
-                  onPressed: () {
-                    // debugPrint('Button pressed ...');
-                    showDialog<String>(
-                      context: context,
-                      builder: (BuildContext context) => AlertDialog(
-                        title: const Text('Instructions'),
-                        content: const Text(
-                            'Below to personalize your configuration you are required to change the Switch name and password for security purpose.'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, 'Cancel'),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                  color: Theme.of(context).appColors.primary),
-                            ),
+
+                  /// WIFI STATUS DISPLAY
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'You are currently connected to:',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge!
+                              .copyWith(fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '"$_connectionStatus"',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium!
+                              .copyWith(
+                                color: Theme.of(context).appColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  /// OPEN WIFI SETTINGS
+                  CustomButton(
+                    text: "Open WiFi List",
+                    icon: Icons.wifi_tethering,
+                    onPressed: () {
+                      AppSettings.openAppSettings(type: AppSettingsType.wifi);
+                    },
+                  ),
+
+                  CustomButton(
+                    icon: FontAwesomeIcons.circleArrowRight,
+                    text: "Proceed",
+                    onPressed: () {
+                      details.switchSSID = "Bbtlock1";
+                      if (!_connectionStatus.contains(details.switchSSID) &&
+                          !details.switchSSID.contains(_connectionStatus)) {
+                        showFlutterToast(
+                            "⚠️ Action required: Connect to WiFi '${details.switchSSID}' with the given password and proceed again.");
+                        AppSettings.openAppSettings(type: AppSettingsType.wifi);
+
+                        return;
+                      }
+
+                      // Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddNewSwitchesPage(
+                            switchDetails: details,
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => AddNewSwitchesPage(
-                                            switchDetails: details,
-                                          )));
-                            },
-                            child: Text(
-                              'Continue',
-                              style: TextStyle(
-                                  color: Theme.of(context).appColors.primary),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-            )
-          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ));
+  }
+
+  /// Helper widget for clean rows
+  Widget _buildInfoRow(BuildContext context,
+      {required String title, required String value}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "$title: ",
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium!
+              .copyWith(fontWeight: FontWeight.w600),
         ),
-      ),
+        Expanded(
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.bodyLarge,
+            softWrap: true,
+          ),
+        ),
+      ],
     );
   }
 }

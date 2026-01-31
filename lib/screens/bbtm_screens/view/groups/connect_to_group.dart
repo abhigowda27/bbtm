@@ -1,14 +1,14 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
+import 'package:bbtml_new/screens/bbtm_screens/widgets/custom/toast.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:open_settings/open_settings.dart';
 
 import '../../controllers/wifi.dart';
 import '../../models/router_model.dart';
 import '../../widgets/custom/custom_button.dart';
-import '../../widgets/custom/toast.dart';
 import 'group_fan_switch_control.dart';
 import 'group_on_off.dart';
 
@@ -68,12 +68,6 @@ class _ConnectToSwitchWidgetState extends State<ConnectToGroupWidget> {
           const SizedBox(
             height: 20,
           ),
-          CustomButton(
-              text: "Open WIFI Settings",
-              icon: Icons.wifi_find,
-              onPressed: () {
-                OpenSettings.openWIFISetting();
-              }),
           if (widget.selectedSwitches
               .any((element) => element.switchTypes.isNotEmpty)) ...[
             CustomButton(
@@ -82,8 +76,9 @@ class _ConnectToSwitchWidgetState extends State<ConnectToGroupWidget> {
                 onPressed: () {
                   if (!_connectionStatus.contains(widget.selectedRouter) &&
                       !widget.selectedRouter.contains(_connectionStatus)) {
-                    showToast(context,
+                    showFlutterToast(
                         "Please Connect WIFI to '${widget.selectedRouter}' to proceed");
+                    AppSettings.openAppSettings(type: AppSettingsType.wifi);
                     return;
                   }
                   Navigator.push(
@@ -104,8 +99,10 @@ class _ConnectToSwitchWidgetState extends State<ConnectToGroupWidget> {
                 onPressed: () {
                   if (!_connectionStatus.contains(widget.selectedRouter) &&
                       !widget.selectedRouter.contains(_connectionStatus)) {
-                    showToast(context,
+                    showFlutterToast(
                         "Please Connect WIFI to '${widget.selectedRouter}' to proceed");
+                    AppSettings.openAppSettings(type: AppSettingsType.wifi);
+
                     return;
                   }
                   Navigator.push(

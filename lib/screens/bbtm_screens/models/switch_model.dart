@@ -2,23 +2,25 @@ class SwitchDetails {
   late String switchId;
   late String switchSSID;
   late String switchPassword;
-
   late String? selectedFan;
+  late String? switchType;
   late String iPAddress;
   String? switchPassKey;
   late List<String> switchTypes;
   late String privatePin;
+  bool? isAutoLock;
 
-  SwitchDetails({
-    required this.switchId,
-    this.switchPassKey,
-    required this.switchSSID,
-    required this.switchTypes,
-    required this.privatePin,
-    required this.switchPassword,
-    required this.selectedFan,
-    required this.iPAddress,
-  });
+  SwitchDetails(
+      {required this.switchId,
+      this.switchPassKey,
+      this.isAutoLock = false,
+      required this.switchSSID,
+      required this.switchTypes,
+      required this.privatePin,
+      required this.switchPassword,
+      required this.selectedFan,
+      required this.iPAddress,
+      this.switchType});
 
   factory SwitchDetails.fromJson(Map<String, dynamic> json) {
     return SwitchDetails(
@@ -30,6 +32,8 @@ class SwitchDetails {
       switchPassword: json['SwitchPassword'] ?? '',
       iPAddress: json['IPAddress'] ?? '',
       switchPassKey: json['SwitchPasskey'],
+      switchType: json['switchType'],
+      isAutoLock: json["isAutoLock"] ?? false,
     );
   }
 
@@ -43,10 +47,8 @@ class SwitchDetails {
     data['SwitchPassword'] = switchPassword;
     data['IPAddress'] = iPAddress;
     data['SwitchPasskey'] = switchPassKey;
+    data['isAutoLock'] = isAutoLock;
+    data['switchType'] = switchType;
     return data;
-  }
-
-  String toSwitchQR() {
-    return "SWITCH,$switchId,$switchSSID,$switchPassKey,$switchPassword,$selectedFan,$switchTypes";
   }
 }

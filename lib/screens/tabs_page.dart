@@ -12,6 +12,7 @@ class TabsPage extends StatefulWidget {
 
 class _TabsPageState extends State<TabsPage> {
   int _selectedIndex = 0;
+
   static final List<Widget> _widgetOptions = [
     const HomePage(),
     const ProfileScreen(),
@@ -25,72 +26,72 @@ class _TabsPageState extends State<TabsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: Theme.of(context).appColors.textSecondary,
-        items: [
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              "assets/images/home.png",
-              color: Theme.of(context).appColors.textSecondary,
-              height: 30,
-              errorBuilder: (context, e, _) {
-                return Icon(
+    return PopScope(
+      canPop: _selectedIndex == 0, // allow pop only on Home tab
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _selectedIndex != 0) {
+          setState(() {
+            _selectedIndex = 0; // switch to Home instead of exiting
+          });
+        }
+      },
+      child: Scaffold(
+        body: _widgetOptions.elementAt(_selectedIndex),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          selectedItemColor: Theme.of(context).appColors.primary,
+          unselectedItemColor: Theme.of(context).appColors.textSecondary,
+          backgroundColor: Theme.of(context).appColors.background,
+          onTap: _onItemTapped,
+          items: [
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                "assets/images/home.png",
+                height: 30,
+                color: Theme.of(context).appColors.textSecondary,
+                errorBuilder: (context, e, _) => Icon(
                   Icons.home,
                   size: 30,
                   color: Theme.of(context).appColors.textSecondary,
-                );
-              },
-            ),
-            activeIcon: Image.asset(
-              "assets/images/home.png",
-              color: Theme.of(context).appColors.primary,
-              height: 30,
-              errorBuilder: (context, e, _) {
-                return Icon(
+                ),
+              ),
+              activeIcon: Image.asset(
+                "assets/images/home.png",
+                height: 30,
+                color: Theme.of(context).appColors.primary,
+                errorBuilder: (context, e, _) => Icon(
                   Icons.home,
                   size: 30,
                   color: Theme.of(context).appColors.primary,
-                );
-              },
+                ),
+              ),
+              label: 'Home',
             ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              "assets/images/user.png",
-              height: 30,
-              color: Theme.of(context).appColors.textSecondary,
-              errorBuilder: (context, e, _) {
-                return Icon(
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                "assets/images/user.png",
+                height: 30,
+                color: Theme.of(context).appColors.textSecondary,
+                errorBuilder: (context, e, _) => Icon(
                   Icons.account_circle_outlined,
                   size: 30,
                   color: Theme.of(context).appColors.textSecondary,
-                );
-              },
-            ),
-            activeIcon: Image.asset(
-              "assets/images/user.png",
-              height: 30,
-              color: Theme.of(context).appColors.primary,
-              errorBuilder: (context, e, _) {
-                return Icon(
+                ),
+              ),
+              activeIcon: Image.asset(
+                "assets/images/user.png",
+                height: 30,
+                color: Theme.of(context).appColors.primary,
+                errorBuilder: (context, e, _) => Icon(
                   Icons.account_circle_outlined,
                   size: 30,
                   color: Theme.of(context).appColors.primary,
-                );
-              },
+                ),
+              ),
+              label: 'Me',
             ),
-            label: 'Me',
-          ),
-        ],
-        backgroundColor: Theme.of(context).appColors.background,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).appColors.primary,
-        onTap: _onItemTapped,
+          ],
+        ),
       ),
     );
   }

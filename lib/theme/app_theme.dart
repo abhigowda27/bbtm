@@ -24,14 +24,13 @@ ThemeData lightTheme() {
       backgroundColor: lightAppColors.primary,
       foregroundColor: lightAppColors.background,
     ),
-    dialogBackgroundColor: lightAppColors.background,
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         foregroundColor: lightAppColors.primary,
       ),
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -48,6 +47,7 @@ ThemeData lightTheme() {
       ),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     ),
+    dividerColor: lightAppColors.textSecondary,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -111,7 +111,7 @@ ThemeData lightTheme() {
       labelMedium: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: lightAppColors.primary),
+          color: lightAppColors.buttonBackground),
       labelSmall: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w400,
@@ -138,12 +138,12 @@ ThemeData darkTheme() {
       centerTitle: true,
       titleTextStyle: TextStyle(
           fontWeight: FontWeight.w600,
-          color: darkAppColors.textSecondary,
+          color: darkAppColors.background,
           fontSize: 24),
       backgroundColor: darkAppColors.primary,
-      foregroundColor: darkAppColors.textPrimary,
+      foregroundColor: darkAppColors.background,
     ),
-    dialogBackgroundColor: darkAppColors.background,
+    dividerColor: darkAppColors.textPrimary,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -211,6 +211,7 @@ ThemeData darkTheme() {
       labelSmall: TextStyle(
           fontSize: 11, fontWeight: FontWeight.w400, color: darkAppColors.grey),
     ),
+    dialogTheme: DialogThemeData(backgroundColor: darkAppColors.background),
   );
 }
 
@@ -236,20 +237,21 @@ const lightAppColors = AppColors(
 
 const darkAppColors = AppColors(
   primary: Colors.blueAccent, // A fresh teal for primary color
-  // Same vibrant teal for brand consistency
-  background: Color(0xFF121212), // Standard dark background (Material Dark)
-  textPrimary: Color(0xFFD5D5D5), // White text for contrast
-  textSecondary: Color(0xFFB0B0B0), // Light gray for less important text
-  buttonBackground: Colors.lightBlueAccent,
-  buttonText: Color(0xFF000000), // Black text for high-contrast buttons
+  background: Color(0xFF121212), // True dark (Google Material standard)
+  textPrimary: Color(0xFFE0E0E0), // Soft white for primary text (high contrast)
+  textSecondary: Color(0xFFB0B0B0), // Muted gray for secondary text
+  buttonBackground:
+      Colors.blue, // Same vibrant teal for buttons (consistent branding)
+  buttonText: Color(0xFF121212), // Dark text on bright button for contrast
 
   // Additional
   white: Color(0xFFFFFFFF),
   black: Color(0xFF000000),
-  grey: Color(0xFF616161),
-  backgroundDark: Color(0xFF1E1E1E),
-  red: Color(0xFFFF6B6B), // Vibrant red for alerts
-  redButton: Color(0xFFB41717), // Consistent danger button
-  green: Color(0xFF25AB51), // Soft green for status indicators
-  greenButton: Color(0xFF06570A), // Medium green for CTA success buttons
+  grey: Color(0xFF455A64), // Cool blue-gray (elevated surfaces, borders)
+  backgroundDark:
+      Color(0xFF1E1E1E), // Slightly elevated cards/floating surfaces
+  red: Color(0xFFF58D8D), // Keep same vibrant red (alerts should stand out)
+  redButton: Color(0xFFE57373), // Softer red button (avoids harshness in dark)
+  green: Color(0xFF81C784), // Lighter green for visibility
+  greenButton: Color(0xFF66BB6A), // Brighter confirm button (clear affordance)
 );

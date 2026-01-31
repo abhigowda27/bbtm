@@ -29,9 +29,10 @@ class _RouterListCardState extends State<RouterListCard> {
 
   @override
   void initState() {
+    debugPrint(widget.switchStatus.toString());
     super.initState();
     slNo = widget.index + 1;
-    switchOn = !widget.switchStatus;
+    switchOn = widget.switchStatus;
   }
 
   @override
