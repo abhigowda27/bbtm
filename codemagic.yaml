@@ -1,14 +1,14 @@
 workflows:
-  ios:
-    name: iOS Build
-    instance_type: mac_mini_m2
+  android-workflow:
+    name: Android Release Build
+    max_build_duration: 60
+    instance_type: linux 
     environment:
       flutter: stable
-      xcode: latest
-      cocoapods: default
+      groups:
+        - android-signing
     scripts:
       - flutter pub get
-      - cd ios && pod install && cd ..
-      - flutter build ipa --release
+      - flutter build apk --release --split-per-abi
     artifacts:
-      - build/ios/ipa/*.ipa   
+      - build/app/outputs/flutter-apk/*.apk
