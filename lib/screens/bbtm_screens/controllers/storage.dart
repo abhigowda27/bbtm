@@ -310,7 +310,7 @@ class StorageController {
     await storage.delete(key: "routers");
   }
 
-  Future<RouterDetails?>? getRouterByName(switchName) async {
+  Future<RouterDetails?>? getRouterByName(String? switchName) async {
     List<RouterDetails> routerList = await readRouters();
     for (var element in routerList) {
       if ("${element.routerName}_${element.switchName}" == switchName) {
@@ -414,7 +414,7 @@ class StorageController {
     await storage.delete(key: "groups");
   }
 
-  Future<GroupDetails?>? getGroupByName(groupName) async {
+  Future<GroupDetails?>? getGroupByName(String? groupName) async {
     List<GroupDetails> groupList = await readAllGroups();
     for (var element in groupList) {
       if (element.groupName == groupName) return element;
@@ -446,8 +446,8 @@ class StorageController {
     return allGroups.any((group) => group.groupName == groupName);
   }
 
-  Future<void> updateGroupDetails(
-      groupName, routerName, List<RouterDetails> selectedSwitches) async {
+  Future<void> updateGroupDetails(String groupName, String routerName,
+      List<RouterDetails> selectedSwitches) async {
     // Assuming you have a method to fetch all group details from storage
     List<GroupDetails> allGroups = await readAllGroups();
     debugPrint("-------------");

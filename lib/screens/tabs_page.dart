@@ -27,7 +27,7 @@ class _TabsPageState extends State<TabsPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: _selectedIndex == 0, // allow pop only on Home tab
+      canPop: _selectedIndex == 0,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && _selectedIndex != 0) {
           setState(() {

@@ -240,8 +240,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     } else {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => item.navigateTo,
+                        PageRouteBuilder(
+                          pageBuilder: (context, _, __) => item.navigateTo,
                         ),
                       );
                     }
