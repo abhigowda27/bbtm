@@ -535,7 +535,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
                           Theme.of(context)
                               .appColors
                               .buttonBackground
-                              .withOpacity(0.2),
+                              .withValues(alpha: 0.2),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -545,7 +545,7 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
                           color: Theme.of(context)
                               .appColors
                               .textPrimary
-                              .withOpacity(0.1),
+                              .withValues(alpha: 0.1),
                           blurRadius: 5,
                           offset: const Offset(2, 2),
                         ),

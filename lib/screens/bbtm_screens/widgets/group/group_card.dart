@@ -42,16 +42,15 @@ class _GroupCardState extends State<GroupCard> {
           ? BoxDecoration(
               boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context)
-                        .appColors
-                        .textSecondary
-                        .withOpacity(0.1),
+                    color: Theme.of(context).appColors.textSecondary
+                      .withValues(alpha: 0.1),
                     spreadRadius: 5,
                     blurRadius: 7,
                     offset: const Offset(5, 5),
                   ),
                 ],
-              color: Theme.of(context).appColors.primary.withOpacity(0.15),
+              color: Theme.of(context).appColors.primary
+                .withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12))
           : null,
       child: Column(

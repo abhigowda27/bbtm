@@ -192,7 +192,7 @@ class _QRPageState extends State<QRPage> {
                     // Positioned(
                     //   bottom: 10,
                     //   child: Container(
-                    //     color: Colors.white.withOpacity(0.8),
+                    //     color: Colors.white.withValues(alpha:0.8),
                     //     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     //     child: Text(
                     //       widget.name,

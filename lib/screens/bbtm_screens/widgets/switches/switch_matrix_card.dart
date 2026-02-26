@@ -43,12 +43,13 @@ class _SwitchMatrixCardState extends State<SwitchMatrixCard> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             blurRadius: 7,
             offset: const Offset(5, 5),
           ),
         ],
-        color: Theme.of(context).appColors.buttonBackground.withOpacity(0.2),
+        color: Theme.of(context).appColors.buttonBackground
+          .withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -111,7 +112,7 @@ class _SwitchMatrixCardState extends State<SwitchMatrixCard> {
               }
             },
             value: switchOff,
-            activeColor: Theme.of(context).appColors.greenButton,
+            activeThumbColor: Theme.of(context).appColors.greenButton,
             activeTrackColor: Theme.of(context).appColors.green,
             inactiveThumbColor: Theme.of(context).appColors.grey,
             inactiveTrackColor: Theme.of(context).appColors.white,

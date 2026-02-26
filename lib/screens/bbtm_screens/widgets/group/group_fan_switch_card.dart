@@ -130,7 +130,7 @@ class _GroupFanSwitchCardState extends State<GroupFanSwitchCard> {
                   borderRadius: BorderRadius.circular(12.0),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
+                      color: Colors.grey.withValues(alpha: 0.2),
                       spreadRadius: 3,
                       blurRadius: 5,
                       offset: const Offset(2, 2),

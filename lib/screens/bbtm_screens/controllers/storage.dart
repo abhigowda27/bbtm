@@ -222,7 +222,7 @@ class StorageController {
     return model;
   }
 
-  Future<SwitchDetails?>? getSwitchBySSID(switchName) async {
+  Future<SwitchDetails?>? getSwitchBySSID(String? switchName) async {
     List<SwitchDetails> switchesList = await readSwitches();
     for (var element in switchesList) {
       if (element.switchSSID == switchName) return element;

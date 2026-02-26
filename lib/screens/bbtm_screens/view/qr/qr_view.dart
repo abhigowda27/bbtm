@@ -171,10 +171,8 @@ class _QRViewState extends State<QRView> with WidgetsBindingObserver {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context)
-                              .appColors
-                              .textSecondary
-                              .withOpacity(0.4),
+                          color: Theme.of(context).appColors.textSecondary
+                            .withValues(alpha: 0.4),
                           spreadRadius: 2,
                           blurRadius: 1,
                           offset: const Offset(2, 4),
@@ -205,16 +203,12 @@ class _QRViewState extends State<QRView> with WidgetsBindingObserver {
                         Container(
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .appColors
-                                .primary
-                                .withOpacity(0.06),
+                            color: Theme.of(context).appColors.primary
+                              .withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Theme.of(context)
-                                  .appColors
-                                  .primary
-                                  .withOpacity(0.3),
+                              color: Theme.of(context).appColors.primary
+                                .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(

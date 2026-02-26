@@ -197,7 +197,7 @@ class _GalleryQRPageState extends State<GalleryQRPage>
                           color: Theme.of(context)
                               .appColors
                               .textSecondary
-                              .withOpacity(0.4),
+                              .withValues(alpha: 0.4),
                           spreadRadius: 2,
                           blurRadius: 1,
                           offset: const Offset(2, 4),
@@ -231,13 +231,13 @@ class _GalleryQRPageState extends State<GalleryQRPage>
                             color: Theme.of(context)
                                 .appColors
                                 .primary
-                                .withOpacity(0.06),
+                                .withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: Theme.of(context)
                                   .appColors
                                   .primary
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(

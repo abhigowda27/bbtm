@@ -5,8 +5,8 @@ ThemeData lightTheme() {
   return ThemeData(
     useMaterial3: true,
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: lightAppColors.primary.withOpacity(
-        0.8,
+      backgroundColor: lightAppColors.primary.withValues(
+        alpha: 0.8,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(50), // roundness
@@ -124,8 +124,8 @@ ThemeData darkTheme() {
   return ThemeData(
     useMaterial3: true,
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: lightAppColors.primary.withOpacity(
-        0.8,
+      backgroundColor: lightAppColors.primary.withValues(
+        alpha: 0.8,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(50), // roundness

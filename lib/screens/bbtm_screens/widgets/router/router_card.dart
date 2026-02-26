@@ -114,16 +114,15 @@ class _RouterCardState extends State<RouterCard> {
             ? BoxDecoration(
                 boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context)
-                          .appColors
-                          .textSecondary
-                          .withOpacity(0.1),
+                      color: Theme.of(context).appColors.textSecondary
+                        .withValues(alpha: 0.1),
                       spreadRadius: 5,
                       blurRadius: 7,
                       offset: const Offset(2, 2),
                     ),
                   ],
-                color: Theme.of(context).appColors.primary.withOpacity(0.15),
+                color: Theme.of(context).appColors.primary
+                  .withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12))
             : null,
         child: Column(
@@ -137,15 +136,13 @@ class _RouterCardState extends State<RouterCard> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).appColors.primary.withOpacity(0.12),
+                      color: Theme.of(context).appColors.primary
+                        .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context)
-                              .appColors
-                              .textSecondary
-                              .withOpacity(0.1),
+                          color: Theme.of(context).appColors.textSecondary
+                            .withValues(alpha: 0.1),
                           spreadRadius: 5,
                           blurRadius: 7,
                           offset: const Offset(5, 5),
@@ -415,7 +412,8 @@ class _RouterCardState extends State<RouterCard> {
   void showInfo() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).appColors.background.withOpacity(0.75),
+      backgroundColor: Theme.of(context).appColors.background
+        .withValues(alpha: 0.75),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -438,10 +436,8 @@ class _RouterCardState extends State<RouterCard> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .appColors
-                                  .primary
-                                  .withOpacity(0.12),
+                              color: Theme.of(context).appColors.primary
+                                .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Image.asset(
@@ -505,18 +501,15 @@ class _RouterCardState extends State<RouterCard> {
                                   final switchType = entry.value;
 
                                   return Card(
-                                    color: Theme.of(context)
-                                        .appColors
-                                        .primary
-                                        .withOpacity(0.5),
+                                    color: Theme.of(context).appColors.primary
+                                      .withValues(alpha: 0.5),
                                     margin:
                                         const EdgeInsets.symmetric(vertical: 4),
                                     child: ListTile(
                                       leading: CircleAvatar(
-                                        backgroundColor: Theme.of(context)
-                                            .appColors
-                                            .primary
-                                            .withOpacity(0.5),
+                                        backgroundColor:
+                                            Theme.of(context).appColors.primary
+                                              .withValues(alpha: 0.5),
                                         child: Text("${index + 1}"),
                                       ),
                                       titleTextStyle: Theme.of(context)

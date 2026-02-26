@@ -42,12 +42,13 @@ class _RouterListCardState extends State<RouterListCard> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             blurRadius: 7,
             offset: const Offset(5, 5),
           ),
         ],
-        color: Theme.of(context).appColors.buttonBackground.withOpacity(0.2),
+        color:
+            Theme.of(context).appColors.buttonBackground.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -112,7 +113,7 @@ class _RouterListCardState extends State<RouterListCard> {
               }
             },
             value: switchOn,
-            activeColor: Theme.of(context).appColors.greenButton,
+            activeThumbColor: Theme.of(context).appColors.greenButton,
             activeTrackColor: Theme.of(context).appColors.green,
             inactiveThumbColor: Theme.of(context).appColors.redButton,
             inactiveTrackColor: Theme.of(context).appColors.red,

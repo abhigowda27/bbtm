@@ -98,13 +98,11 @@ class _ScheduleOnOffPageState extends State<ScheduleOnOffPage> {
       final response = await ApiConnect.hitApiPost(url, payload);
       debugPrint("$response");
       if (response.toLowerCase() == "ok") {
-        showToast(navigatorKey
-            .currentContext!,
+        showToast(navigatorKey.currentContext!,
             alarm.enabled ? "Successfully scheduled" : "Successfully removed");
         debugPrint('API call successful: $response');
       } else {
-        showToast(navigatorKey
-            .currentContext!, "Something went wrong");
+        showToast(navigatorKey.currentContext!, "Something went wrong");
         debugPrint('API call failed with status: ${response.statusCode}');
       }
     } catch (e) {
@@ -151,8 +149,7 @@ class _ScheduleOnOffPageState extends State<ScheduleOnOffPage> {
     if (onTime == null) return;
 
     final offTime = await showTimePicker(
-      context: navigatorKey
-          .currentContext!,
+      context: navigatorKey.currentContext!,
       initialTime: onTime,
       helpText: 'Select OFF Time',
     );
@@ -185,10 +182,8 @@ class _ScheduleOnOffPageState extends State<ScheduleOnOffPage> {
                     decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context)
-                                .appColors
-                                .textSecondary
-                                .withOpacity(0.1),
+                            color: Theme.of(context).appColors.textSecondary
+                              .withValues(alpha: 0.1),
                             spreadRadius: 5,
                             blurRadius: 7,
                             offset: const Offset(5, 5),

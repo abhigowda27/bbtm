@@ -373,7 +373,13 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
   List<RouterDetails> routers = [];
   List<GroupDetails> groups = [];
 
-  getData() async {
+  Future<
+      (
+        List<ContactsModel>,
+        List<SwitchDetails>,
+        List<RouterDetails>,
+        List<GroupDetails>
+      )> getData() async {
     contacts = await _storageController.readContacts();
     switches = await _storageController.readSwitches();
     routers = await _storageController.readRouters();

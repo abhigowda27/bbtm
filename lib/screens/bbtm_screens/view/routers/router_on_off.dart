@@ -166,12 +166,13 @@ class _RouterOnOffState extends State<RouterOnOff> {
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
+                        color: Colors.grey.withValues(alpha: 0.2),
                         blurRadius: 7,
                         offset: const Offset(5, 5),
                       ),
                     ],
-                    color: Theme.of(context).appColors.primary.withOpacity(0.7),
+                    color: Theme.of(context).appColors.primary
+                      .withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -244,7 +245,8 @@ class _RouterOnOffState extends State<RouterOnOff> {
                             }
                           },
                           value: switchOn,
-                          activeColor: Theme.of(context).appColors.greenButton,
+                          activeThumbColor:
+                              Theme.of(context).appColors.greenButton,
                           activeTrackColor: Theme.of(context).appColors.green,
                           inactiveThumbColor:
                               Theme.of(context).appColors.redButton,
@@ -505,17 +507,16 @@ class _RouterOnOffState extends State<RouterOnOff> {
       debugPrint(command);
       debugPrint("${widget.routerDetails.iPAddress}/getSwitchcmd" "$command ");
       if (response.toLowerCase() == "ok") {
-        showToast(navigatorKey
-            .currentContext!, "Fan '$command' executed successfully");
+        showToast(navigatorKey.currentContext!,
+            "Fan '$command' executed successfully");
       } else {
-        showToast(navigatorKey
-            .currentContext!, "Failed to execute. Try again.");
+        showToast(
+            navigatorKey.currentContext!, "Failed to execute. Try again.");
       }
     } on DioException catch (e) {
       debugPrint("Api Error $e");
     } catch (e) {
-      ScaffoldMessenger.of(navigatorKey
-          .currentContext!).showSnackBar(
+      ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
         SnackBar(
             content: Text("An unexpected error occurred: ${e.toString()}")),
       );

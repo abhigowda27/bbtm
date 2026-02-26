@@ -249,8 +249,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).appColors.primary.withOpacity(0.15),
+                      color: Theme.of(context)
+                          .appColors
+                          .primary
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                           color: Theme.of(context).appColors.primary),

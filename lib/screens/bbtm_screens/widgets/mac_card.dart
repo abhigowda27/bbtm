@@ -85,13 +85,14 @@ class _MacCardState extends State<MacCard> {
       decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).appColors.textSecondary.withOpacity(0.1),
+              color: Theme.of(context).appColors.textSecondary
+                .withValues(alpha: 0.1),
               spreadRadius: 5,
               blurRadius: 7,
               offset: const Offset(2, 2),
             ),
           ],
-          color: Theme.of(context).appColors.primary.withOpacity(0.15),
+          color: Theme.of(context).appColors.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(8.0),

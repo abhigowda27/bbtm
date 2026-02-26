@@ -377,8 +377,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       _storageController.updateSwitch(
                           switchDetails1.switchId, switchDetails1);
                       Navigator.pushAndRemoveUntil<dynamic>(
-                        navigatorKey
-                            .currentContext!,
+                        navigatorKey.currentContext!,
                         MaterialPageRoute<dynamic>(
                           builder: (BuildContext context) => const TabsPage(),
                         ),
@@ -396,8 +395,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       _storageController.updateSwitch(
                           switchDetails1.switchId, switchDetails1);
                       Navigator.pushAndRemoveUntil<dynamic>(
-                        navigatorKey
-                            .currentContext!,
+                        navigatorKey.currentContext!,
                         MaterialPageRoute<dynamic>(
                           builder: (BuildContext context) => const TabsPage(),
                         ),
@@ -405,8 +403,8 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                       );
                     } catch (e) {
                       debugPrint(e.toString());
-                      showToast(navigatorKey
-                          .currentContext!, "Failed to Update. Try again");
+                      showToast(navigatorKey.currentContext!,
+                          "Failed to Update. Try again");
                       setState(() {
                         loading = false;
                       });
@@ -470,10 +468,8 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                               width: 2,
                               color: _selectedAppliance?.id == appliance.id
                                   ? Theme.of(context).appColors.buttonBackground
-                                  : Theme.of(context)
-                                      .appColors
-                                      .grey
-                                      .withOpacity(0.5),
+                                  : Theme.of(context).appColors.grey
+                                .withValues(alpha: 0.5),
                             ),
                           ),
                           leading: Image.asset(

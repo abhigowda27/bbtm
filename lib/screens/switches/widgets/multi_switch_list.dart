@@ -193,12 +193,13 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   blurRadius: 7,
                   offset: const Offset(5, 5),
                 ),
               ],
-              color: Theme.of(context).appColors.primary.withOpacity(0.7),
+              color: Theme.of(context).appColors.primary
+                .withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(children: [
@@ -223,10 +224,8 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                   ),
                   errorWidget: (context, url, error) => Icon(
                     Icons.image_outlined,
-                    color: Theme.of(context)
-                        .appColors
-                        .textPrimary
-                        .withOpacity(0.3),
+                    color: Theme.of(context).appColors.textPrimary
+                      .withValues(alpha: 0.3),
                     size: screenWidth * 0.1,
                   ),
                 ),
@@ -262,13 +261,9 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                               children: [
                                 CircleAvatar(
                                   backgroundColor: (newValue
-                                          ? Theme.of(context)
-                                              .appColors
-                                              .greenButton
-                                          : Theme.of(context)
-                                              .appColors
-                                              .redButton)
-                                      .withOpacity(0.1),
+                                      ? Theme.of(context).appColors.greenButton
+                                      : Theme.of(context).appColors.redButton)
+                                    .withValues(alpha: 0.1),
                                   radius: 24,
                                   child: Icon(
                                     Icons.power_settings_new_outlined,
@@ -304,10 +299,9 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                                   .textTheme
                                   .bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(context)
-                                        .appColors
-                                        .textPrimary
-                                        .withOpacity(0.8),
+                                    color:
+                                        Theme.of(context).appColors.textPrimary
+                                          .withValues(alpha: 0.8),
                                   ),
                             ),
                             actions: [
@@ -362,8 +356,9 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                           boxShadow: [
                             BoxShadow(
                               color: (mainSwitchStatus ?? false)
-                                  ? Colors.green.withOpacity(0.5)
-                                  : Colors.red.withOpacity(0.5),
+                                  ? Colors.green.withValues(alpha: 0.5)
+                                  : Colors.red
+                                .withValues(alpha: 0.5),
                               blurRadius: 15,
                               spreadRadius: 3,
                             ),
@@ -431,7 +426,7 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
+                      color: Colors.grey.withValues(alpha: 0.2),
                       blurRadius: 7,
                       offset: const Offset(5, 5),
                     ),
@@ -439,7 +434,8 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).appColors.buttonBackground,
-                      Theme.of(context).appColors.primary.withOpacity(0.2),
+                      Theme.of(context).appColors.primary
+                        .withValues(alpha: 0.2),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -447,7 +443,7 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                   // color: Theme.of(context)
                   //     .appColors
                   //     .buttonBackground
-                  //     .withOpacity(0.2),
+                  //     .withValues(alpha:0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding:
@@ -476,10 +472,8 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                             ),
                             errorWidget: (context, url, error) => Icon(
                               Icons.image_outlined,
-                              color: Theme.of(context)
-                                  .appColors
-                                  .textPrimary
-                                  .withOpacity(0.3),
+                              color: Theme.of(context).appColors.textPrimary
+                                .withValues(alpha: 0.3),
                               size: screenWidth * 0.1,
                             ),
                           ),
@@ -497,14 +491,11 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
                             activeColor:
                                 Theme.of(context).appColors.greenButton,
                             activeTrackColor: Theme.of(context).appColors.green,
-                            inactiveThumbColor: Theme.of(context)
-                                .appColors
-                                .redButton
-                                .withOpacity(0.5),
-                            inactiveTrackColor: Theme.of(context)
-                                .appColors
-                                .red
-                                .withOpacity(0.2),
+                            inactiveThumbColor:
+                                Theme.of(context).appColors.redButton
+                                  .withValues(alpha: 0.5),
+                            inactiveTrackColor: Theme.of(context).appColors.red
+                              .withValues(alpha: 0.2),
                             onChanged: (newValue) {
                               toggleSwitch(
                                 multiSwitch["device_id"],

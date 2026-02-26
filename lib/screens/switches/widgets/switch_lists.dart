@@ -282,7 +282,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
             //       color: Theme.of(context)
             //           .appColors
             //           .textSecondary
-            //           .withOpacity(0.1),
+            //           .withValues(alpha:0.1),
             //       spreadRadius: 5,
             //       blurRadius: 7,
             //       offset: const Offset(5, 5),
@@ -314,16 +314,12 @@ class _SwitchesCardState extends State<SwitchesCard> {
                       ),
                       const SizedBox(width: 10),
                       ToggleButtons(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(5),
                         selectedColor: Theme.of(context).appColors.primary,
-                        fillColor: Theme.of(context)
-                            .appColors
-                            .primary
-                            .withOpacity(0.1),
+                        fillColor: Theme.of(context).appColors.primary
+                          .withValues(alpha: 0.1),
                         borderColor: Theme.of(context).dividerColor,
                         selectedBorderColor:
                             Theme.of(context).appColors.primary,
@@ -399,7 +395,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
                                         Theme.of(context)
                                             .appColors
                                             .buttonBackground
-                                            .withOpacity(0.2),
+                                          .withValues(alpha: 0.2),
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -409,7 +405,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
                                         color: Theme.of(context)
                                             .appColors
                                             .textPrimary
-                                            .withOpacity(0.1),
+                                          .withValues(alpha: 0.1),
                                         blurRadius: 5,
                                         offset: const Offset(2, 2),
                                       ),
@@ -454,7 +450,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
                                               color: Theme.of(context)
                                                   .appColors
                                                   .textPrimary
-                                                  .withOpacity(0.3),
+                                                .withValues(alpha: 0.3),
                                               size: screenWidth * 0.1,
                                             ),
                                           ),
@@ -524,15 +520,17 @@ class _SwitchesCardState extends State<SwitchesCard> {
     showModalBottomSheet(
       isDismissible: true,
       context: context,
-      backgroundColor: Theme.of(context).appColors.background.withOpacity(0.8),
+      backgroundColor: Theme.of(context).appColors.background
+        .withValues(alpha: 0.8),
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).appColors.background.withOpacity(0.95),
-                Theme.of(context).appColors.buttonBackground.withOpacity(0.8),
+                Theme.of(context).appColors.background.withValues(alpha: 0.95),
+                Theme.of(context).appColors.buttonBackground
+                  .withValues(alpha: 0.8),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -540,7 +538,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -576,7 +574,8 @@ class _SwitchesCardState extends State<SwitchesCard> {
                 ],
               ),
               Divider(
-                color: Theme.of(context).appColors.textPrimary.withOpacity(0.1),
+                color: Theme.of(context).appColors.textPrimary
+                  .withValues(alpha: 0.1),
                 thickness: 1,
               ),
               const SizedBox(height: 8),
@@ -629,8 +628,8 @@ class _SwitchesCardState extends State<SwitchesCard> {
                               BoxShadow(
                                 color: (switchStates[device0["device_id"]] ??
                                         false)
-                                    ? Colors.green.withOpacity(0.5)
-                                    : Colors.red.withOpacity(0.5),
+                                    ? Colors.green.withValues(alpha: 0.5)
+                                    : Colors.red.withValues(alpha: 0.5),
                                 blurRadius: 15,
                                 spreadRadius: 3,
                                 offset: const Offset(0, 5),

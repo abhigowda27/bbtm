@@ -140,7 +140,7 @@ class _GroupingPageState extends State<GroupingPage> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -179,7 +179,7 @@ class _GroupingPageState extends State<GroupingPage> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -240,10 +240,10 @@ class _GroupingPageState extends State<GroupingPage> {
                 padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.blue.withOpacity(0.15),
+                  color: Colors.blue.withValues(alpha: 0.15),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blueAccent.withOpacity(0.4),
+                      color: Colors.blueAccent.withValues(alpha: 0.4),
                       blurRadius: 50,
                       spreadRadius: 20,
                     ),

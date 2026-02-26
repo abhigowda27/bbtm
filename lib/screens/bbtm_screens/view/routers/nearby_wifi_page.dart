@@ -126,16 +126,12 @@ class _NearbyWifiPageState extends State<NearbyWifiPage> {
                               horizontal: 16.0, vertical: 8),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .appColors
-                                .primary
-                                .withOpacity(0.06),
+                            color: Theme.of(context).appColors.primary
+                              .withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Theme.of(context)
-                                  .appColors
-                                  .primary
-                                  .withOpacity(0.3),
+                              color: Theme.of(context).appColors.primary
+                                .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(

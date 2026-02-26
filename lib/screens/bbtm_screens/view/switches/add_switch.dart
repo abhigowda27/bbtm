@@ -263,7 +263,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                     flex: 4,
                     child: DropdownButtonFormField<String>(
                       autovalidateMode: AutovalidateMode.onUserInteraction,
-                      value: _selectedSwitchType,
+                      initialValue: _selectedSwitchType,
                       onChanged: (newValue) {
                         setState(() {
                           _selectedSwitchType = newValue;
@@ -607,7 +607,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                           tileColor: Theme.of(context)
                               .appColors
                               .primary
-                              .withOpacity(0.25),
+                              .withValues(alpha: 0.25),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
@@ -616,7 +616,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                                   : Theme.of(context)
                                       .appColors
                                       .grey
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                             ),
                           ),
                           leading: Image.asset(

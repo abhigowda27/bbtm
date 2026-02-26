@@ -90,7 +90,7 @@ class _GroupMatrixCardState extends State<GroupMatrixCard> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             blurRadius: 5,
             offset: const Offset(5, 5),
           ),

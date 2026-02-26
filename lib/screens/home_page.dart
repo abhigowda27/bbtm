@@ -181,10 +181,10 @@
 //                         },
 //                         child: Container(
 //                           decoration: BoxDecoration(
-//                             color: Colors.white.withOpacity(1),
+//                             color: Colors.white.withValues(alpha:1),
 //                             boxShadow: [
 //                               BoxShadow(
-//                                 color: Colors.grey.withOpacity(1),
+//                                 color: Colors.grey.withValues(alpha:1),
 //                                 blurRadius: 5,
 //                                 offset: const Offset(2, 2),
 //                               ),
@@ -324,7 +324,7 @@ class _DropdownExamplesPageState extends State<DropdownExamplesPage> {
                       labelText: 'Select fruit',
                       border: OutlineInputBorder(),
                     ),
-                    value: _formValue,
+                    initialValue: _formValue,
                     items: fruits
                         .map(
                           (item) => DropdownMenuItem(
@@ -407,7 +407,7 @@ class _DropdownExamplesPageState extends State<DropdownExamplesPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              value: _styledValue,
+              initialValue: _styledValue,
               icon: const Icon(Icons.keyboard_arrow_down),
               items: fruits
                   .map(
