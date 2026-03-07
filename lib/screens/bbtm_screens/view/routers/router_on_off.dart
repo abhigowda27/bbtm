@@ -139,6 +139,9 @@ class _RouterOnOffState extends State<RouterOnOff> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final width = screenSize.width;
+    final isLargeScreen = width > 600;
     return GestureDetector(
       onTap: () => _resetTimer,
       child: Scaffold(
@@ -281,8 +284,8 @@ class _RouterOnOffState extends State<RouterOnOff> {
                         );
                       },
                       gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                           SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: isLargeScreen ? 3 : 2,
                         childAspectRatio: 1,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20,

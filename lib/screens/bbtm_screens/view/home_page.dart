@@ -10,6 +10,7 @@ import 'package:bbtml_new/screens/bbtm_screens/view/switches/switch_page.dart';
 import 'package:bbtml_new/screens/switches/switch_page_cloud.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -94,7 +95,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    requestAllPermissions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      requestAllPermissions();
+    });
     _networkService = NetworkService();
     _initNetworkInfo();
 
@@ -104,17 +107,66 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _showPermissionDialog(Permission permission) async {
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      debugPrint("Cannot show permission dialog: navigatorKey context is null");
+      return; // Or fallback to something else
+    }
+
+    String permissionName = permission.toString().split('.').last;
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text("$permissionName Permission Required"),
+          content: Text(
+              "The app needs $permissionName permission to function properly. Please enable it in Settings."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                await openAppSettings();
+              },
+              child: const Text("Open Settings"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> requestAllPermissions() async {
-    Map<Permission, PermissionStatus> statuses = await [
+    // List of permissions you need
+    List<Permission> permissions = [
       Permission.camera,
       Permission.contacts,
+      Permission.locationWhenInUse,
+      Permission.microphone,
       Permission.location,
-    ].request();
+    ];
 
-    statuses.forEach((permission, status) {
+    for (var permission in permissions) {
+      PermissionStatus status = await permission.status;
+
+      if (status.isDenied) {
+        status = await permission.request();
+      }
+
+      if (status.isPermanentlyDenied) {
+        // Open app settings so the user can manually enable it
+        await _showPermissionDialog(permission);
+      }
+
       debugPrint("Permission: $permission, Status: $status");
-    });
+    }
 
+    // Check location service
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     setState(() => _locationEnabled = serviceEnabled);
 
@@ -124,8 +176,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void _showEnableLocationDialog() {
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      debugPrint("Cannot show location dialog: context null");
+      return;
+    }
+
     showDialog(
-      context: navigatorKey.currentContext!,
+      context: context,
       barrierDismissible: false,
       builder: (ctx) {
         return PopScope(
@@ -198,7 +256,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final height = screenSize.height;
-
+    final width = screenSize.width;
     return Scaffold(
       // backgroundColor: Theme.of(context).appColors.background,
       body: CustomScrollView(
@@ -212,11 +270,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             padding: const EdgeInsets.all(20.0),
             sliver: SliverGrid.builder(
               itemCount: lists.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: width > 600 ? 4 : 3,
                 childAspectRatio: 0.9,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
+                crossAxisSpacing:width > 600 ? 25: 20,
+                mainAxisSpacing:width > 600 ? 25: 20,
               ),
               itemBuilder: (context, index) {
                 final item = lists[index];

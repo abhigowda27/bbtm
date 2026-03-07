@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/constants.dart';
 import 'package:bbtml_new/controllers/apis.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/controllers/wifi.dart';
+import 'package:bbtml_new/screens/bbtm_screens/view/routers/add_router.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/routers/nearby_wifi_page.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/switches/connect_to_switch.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/switches/switch_on_off.dart';
@@ -194,20 +196,24 @@ class SwitchCardState extends State<SwitchCard> {
                             Row(children: [
                               if (widget
                                   .switchDetails.switchTypes.isNotEmpty) ...[
-                                Text(
-                                  "(${widget.switchDetails.switchTypes.length}) Devices",
-                                  maxLines: 2,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                Expanded(
+                                  child: Text(
+                                    "(${widget.switchDetails.switchTypes.length}) Devices",
+                                    maxLines: 2,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                  ),
                                 )
                               ],
                               if (widget
                                   .switchDetails.selectedFan!.isNotEmpty) ...[
-                                Text(
-                                  widget.switchDetails.selectedFan!,
-                                  style: Theme.of(context).textTheme.bodyLarge,
+                                Expanded(
+                                  child: Text(
+                                    widget.switchDetails.selectedFan!,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
                                 )
                               ]
                             ])
@@ -235,13 +241,26 @@ class SwitchCardState extends State<SwitchCard> {
                               type: AppSettingsType.wifi);
                           return;
                         }
-                        Navigator.push(
+                        if (Platform.isIOS) {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => NearbyWifiPage(
-                                      switchDetails: widget.switchDetails,
-                                      isFromSwitch: true,
-                                    )));
+                              builder: (_) => AddNewRouterPage(
+                                isFromSwitch: true,
+                                switchDetails: widget.switchDetails,
+                                selectedWifiName: "",
+                              ),
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => NearbyWifiPage(
+                                        switchDetails: widget.switchDetails,
+                                        isFromSwitch: true,
+                                      )));
+                        }
                       },
                       icon: Transform.rotate(
                         angle: -90 * 3.1415926535897932 / 180,

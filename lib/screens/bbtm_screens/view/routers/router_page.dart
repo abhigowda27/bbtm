@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/common/search_utils.dart';
 import 'package:bbtml_new/screens/bbtm_screens/controllers/storage.dart';
@@ -8,6 +10,8 @@ import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+import 'add_router.dart';
 
 class RouterPage extends StatefulWidget {
   const RouterPage({super.key});
@@ -136,14 +140,26 @@ class _RouterPageState extends State<RouterPage> {
                 ),
               ),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NearbyWifiPage(
-                      isFromSwitch: false,
+                if (Platform.isIOS) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddNewRouterPage(
+                        isFromSwitch: false,
+                        selectedWifiName: "",
+                      ),
                     ),
-                  ),
-                );
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NearbyWifiPage(
+                        isFromSwitch: false,
+                      ),
+                    ),
+                  );
+                }
               },
             )
           : null,

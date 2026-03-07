@@ -58,99 +58,112 @@ class _QRPageState extends State<QRPage> {
 
   Future<void> convertQrCodeToImage(
       BuildContext context, String data, String name) async {
-    final boundary =
-        globalKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) return;
+    try {
+      final boundary = globalKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) return;
 
-    // Render QR code in a RepaintBoundary
-    ui.Image qrImage = await boundary.toImage(pixelRatio: 3);
+      // Render QR code image
+      ui.Image qrImage = await boundary.toImage(pixelRatio: 3);
 
-    // Define margin size and other drawing properties
-    const double margin = 20.0;
-    const double logoSize = 120.0; // Size of the logo
-    const double textSize =
-        40.0; // Adjust size based on the text height you expect
+      const double margin = 20.0;
+      const double logoSize = 120.0;
+      const double textSize = 40.0;
 
-    // Calculate image size with margins
-    final double qrImageWidth = qrImage.width.toDouble();
-    final double qrImageHeight = qrImage.height.toDouble();
-    final double imageWidth = qrImageWidth + 2 * margin;
-    final double imageHeight =
-        qrImageHeight + 3 * margin + logoSize + textSize; // Adjusted height
+      final double qrImageWidth = qrImage.width.toDouble();
+      final double qrImageHeight = qrImage.height.toDouble();
+      final double imageWidth = qrImageWidth + 2 * margin;
+      final double imageHeight =
+          qrImageHeight + 3 * margin + logoSize + textSize;
 
-    // Create a new image with the margins
-    ui.PictureRecorder recorder = ui.PictureRecorder();
-    Canvas canvas =
-        Canvas(recorder, Rect.fromLTWH(0, 0, imageWidth, imageHeight));
+      // Prepare canvas
+      ui.PictureRecorder recorder = ui.PictureRecorder();
+      Canvas canvas =
+          Canvas(recorder, Rect.fromLTWH(0, 0, imageWidth, imageHeight));
 
-    // Draw the QR code with margins
-    canvas.drawRect(Rect.fromLTWH(0, 0, imageWidth, imageHeight),
-        Paint()..color = Colors.white);
-    canvas.drawImageRect(
-      qrImage,
-      Rect.fromLTWH(0, 0, qrImageWidth, qrImageHeight),
-      Rect.fromLTWH(margin, margin + logoSize + textSize + margin, qrImageWidth,
-          qrImageHeight),
-      Paint(),
-    );
+      // Draw white background
+      canvas.drawRect(Rect.fromLTWH(0, 0, imageWidth, imageHeight),
+          Paint()..color = Colors.white);
 
-    // Draw the logo (assuming it's an asset) at the top center
-    const logoImage = AssetImage('assets/images/BBT_Logo_2.png');
-    final logo = await _loadImage(logoImage);
-    final logoRect = Rect.fromLTWH(
-      (imageWidth - logoSize) / 2, // Centered horizontally
-      margin, // Positioned at the top with margin
-      logoSize,
-      logoSize,
-    );
-    canvas.drawImageRect(
-      logo,
-      Rect.fromLTWH(0, 0, logo.width.toDouble(), logo.height.toDouble()),
-      logoRect,
-      Paint(),
-    );
+      // Draw QR code
+      canvas.drawImageRect(
+        qrImage,
+        Rect.fromLTWH(0, 0, qrImageWidth, qrImageHeight),
+        Rect.fromLTWH(margin, margin + logoSize + textSize + margin,
+            qrImageWidth, qrImageHeight),
+        Paint(),
+      );
 
-    // Draw the name below the logo
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: name,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 50,
-          fontWeight: FontWeight.bold,
+      // Draw logo
+      final logoImage = AssetImage('assets/images/BBT_Logo_2.png');
+      final logo = await _loadImage(logoImage);
+
+      final logoRect = Rect.fromLTWH(
+        (imageWidth - logoSize) / 2,
+        margin,
+        logoSize,
+        logoSize,
+      );
+
+      canvas.drawImageRect(
+        logo,
+        Rect.fromLTWH(0, 0, logo.width.toDouble(), logo.height.toDouble()),
+        logoRect,
+        Paint(),
+      );
+
+      // Draw name text below logo
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: name,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 50,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout(
-      minWidth: 0,
-      maxWidth: imageWidth,
-    );
+        textDirection: TextDirection.ltr,
+      );
 
-    final textOffset = Offset(
-      (imageWidth - textPainter.width) / 2,
-      logoRect.bottom + 5,
-    );
+      textPainter.layout(minWidth: 0, maxWidth: imageWidth);
 
-    textPainter.paint(canvas, textOffset);
+      final textOffset = Offset(
+        (imageWidth - textPainter.width) / 2,
+        logoRect.bottom + 5,
+      );
 
-    // End recording and create the image
-    ui.Image finalImage = await recorder
-        .endRecording()
-        .toImage(imageWidth.toInt(), imageHeight.toInt());
+      textPainter.paint(canvas, textOffset);
 
-    // Convert the image to PNG format
-    ByteData? byteData =
-        await finalImage.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List pngBytes = byteData!.buffer.asUint8List();
-    final directory = (await getTemporaryDirectory()).path;
-    File imgFile = File("$directory/qrCode.png");
-    await imgFile.writeAsBytes(pngBytes);
+      // Create final image
+      ui.Image finalImage = await recorder
+          .endRecording()
+          .toImage(imageWidth.toInt(), imageHeight.toInt());
 
-    // Share the image
-    await Share.shareXFiles([XFile(imgFile.path)],
+      ByteData? byteData =
+          await finalImage.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      // Save to temp file
+      final directory = await getTemporaryDirectory();
+      File imgFile = File("${directory.path}/qrCode.png");
+      await imgFile.writeAsBytes(pngBytes);
+
+      // Get the RenderBox for iPad popover (sharePositionOrigin)
+      final box = context.findRenderObject() as RenderBox?;
+      final shareOrigin = (box != null)
+          ? box.localToGlobal(Offset.zero) & box.size
+          : Rect.fromLTWH(0, 0, 1, 1); // fallback if box not ready
+
+      // Share using modern SharePlus API
+      await SharePlus.instance.share(ShareParams(
         text:
-            "Enjoy the ease of controlling your switches effortless operation, happy living!");
+            "Enjoy the ease of controlling your switches effortless operation, happy living!",
+        files: [XFile(imgFile.path)],
+        sharePositionOrigin: shareOrigin,
+      ));
+    } catch (e) {
+      debugPrint("Error sharing QR code: $e");
+    }
   }
 
   Future<ui.Image> _loadImage(ImageProvider provider) async {

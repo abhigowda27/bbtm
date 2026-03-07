@@ -260,8 +260,8 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
               Row(
                 children: [
                   Expanded(
-                    flex: 4,
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       initialValue: _selectedSwitchType,
                       onChanged: (newValue) {
@@ -285,6 +285,8 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        hintMaxLines: 1,
+
                         hintStyle: Theme.of(context).textTheme.bodyLarge,
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 10),

@@ -419,7 +419,10 @@ class _MultiDevicesWidgetState extends State<MultiDevicesWidget> {
               final isFan = deviceType != 1;
               final width = isFan
                   ? MediaQuery.of(context).size.width - 40
-                  : (MediaQuery.of(context).size.width - 60) / 2;
+                  : screenWidth > 600
+                      ? (MediaQuery.of(context).size.width - 60) / 3
+                      : (MediaQuery.of(context).size.width - 60) / 2;
+
 
               return Container(
                 width: width,
