@@ -89,20 +89,9 @@ class _SettingsPageState extends State<SettingsPage> {
             CustomButton(
               text: "Finger Prints (Locks)",
               icon: Icons.fingerprint_outlined,
-              onPressed: () async {
-                List<SwitchDetails> switches =
-                    await _storageController.readSwitches();
-                String localConnectStatus = _connectionStatus;
-                for (var element in switches) {
-                  if (localConnectStatus == (element.switchSSID) &&
-                      element.switchType == "DOOR_LOCK") {
-                    Navigator.push(navigatorKey.currentContext!,
-                        MaterialPageRoute(builder: (context) => FingersPage()));
-                    return;
-                  }
-                }
-                showToast(navigatorKey.currentContext!,
-                    "You may not be connected to AP Mode of lock.");
+              onPressed: () {
+                Navigator.push(navigatorKey.currentContext!,
+                    MaterialPageRoute(builder: (context) => FingersPage()));
               },
             ),
             CustomButton(

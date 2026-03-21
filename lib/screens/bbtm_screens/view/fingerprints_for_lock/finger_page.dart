@@ -49,7 +49,7 @@ class _FingersPageState extends State<FingersPage> {
     setState(() => _connectionStatus = wifiName ?? "Unknown");
   }
 
-  Future<List<SwitchDetails>> fetchContacts() async {
+  Future<List<SwitchDetails>> fetchLocks() async {
     return _storageController.readSwitchesByType("DOOR_LOCK");
   }
 
@@ -58,7 +58,7 @@ class _FingersPageState extends State<FingersPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Fingerprints")),
       body: FutureBuilder(
-          future: fetchContacts(),
+          future: fetchLocks(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return CircularProgressIndicator(
