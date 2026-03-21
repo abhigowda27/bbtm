@@ -241,15 +241,18 @@ class _SwitchOnOffState extends State<SwitchOnOff> {
                                   i++) {
                                 final uri =
                                     "${widget.switchDetails.iPAddress}/getSwitchcmd$i";
+                                final isFanCondition = widget.switchDetails
+                                        .selectedFan!.isNotEmpty &&
+                                    i == totalSwitches + 1;
+
                                 final payload = {
                                   "Lock_id": widget.switchDetails.switchId,
                                   "lock_passkey":
                                       widget.switchDetails.switchPassKey,
-                                  "lock_cmd$i": (widget.switchDetails
-                                              .selectedFan!.isNotEmpty &&
-                                          i == totalSwitches + 1)
-                                      ? (value ? "HIGH" : "OFF")
-                                      : (value ? "ON$i" : "OFF$i"),
+                                  isFanCondition ? "lock_cmd" : "lock_cmd$i":
+                                      isFanCondition
+                                          ? (value ? "HIGH" : "OFF")
+                                          : (value ? "ON$i" : "OFF$i"),
                                 };
 
                                 apiCalls.add(

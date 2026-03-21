@@ -62,6 +62,9 @@
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>This app needs access to your location to show nearby content, map features, or Wi-Fi related functionality.</string>
 
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app may access your location in the background to provide location-based features and improve user experience.</string>
+
     <key>NSMicrophoneUsageDescription</key>
     <string>This app needs microphone access to record audio, enable voice features, or for live communication.</string>
 

@@ -174,8 +174,10 @@ class _RouterOnOffState extends State<RouterOnOff> {
                         offset: const Offset(5, 5),
                       ),
                     ],
-                    color: Theme.of(context).appColors.primary
-                      .withValues(alpha: 0.7),
+                    color: Theme.of(context)
+                        .appColors
+                        .primary
+                        .withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -216,15 +218,18 @@ class _RouterOnOffState extends State<RouterOnOff> {
                                   i++) {
                                 final uri =
                                     "${widget.routerDetails.iPAddress}/getSwitchcmd$i";
+                                final isFanCondition = widget.routerDetails
+                                        .selectedFan!.isNotEmpty &&
+                                    i == totalSwitches + 1;
+
                                 final payload = {
                                   "Lock_id": widget.routerDetails.switchID,
                                   "lock_passkey":
                                       widget.routerDetails.switchPasskey,
-                                  "lock_cmd$i": (widget.routerDetails
-                                              .selectedFan!.isNotEmpty &&
-                                          i == totalSwitches + 1)
-                                      ? (value ? "HIGH" : "OFF")
-                                      : (value ? "ON$i" : "OFF$i"),
+                                  isFanCondition ? "lock_cmd" : "lock_cmd$i":
+                                      isFanCondition
+                                          ? (value ? "HIGH" : "OFF")
+                                          : (value ? "ON$i" : "OFF$i"),
                                 };
 
                                 apiCalls.add(
@@ -283,9 +288,8 @@ class _RouterOnOffState extends State<RouterOnOff> {
                           wifiName: _connectionStatus,
                         );
                       },
-                      gridDelegate:
-                           SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: isLargeScreen ? 3 : 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isLargeScreen ? 3 : 2,
                         childAspectRatio: 1,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20,

@@ -515,16 +515,28 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
                   ),
                 const SizedBox(height: 10),
                 const Text("Select Contact"),
-                DropdownMenu(
-                  onSelected: (value) async {
-                    contact = (await _storageController
-                        .getContactByPhone(value ?? ""))!;
-                  },
-                  dropdownMenuEntries: contacts
-                      .map((e) =>
-                          DropdownMenuEntry(value: e.name, label: e.name))
-                      .toList(),
-                ),
+                contacts.isEmpty
+                    ? GestureDetector(
+                        onTap: () {
+                          showFlutterToast(
+                              "No contacts yet! Add users from the Home page.");
+                        },
+                        child: const AbsorbPointer(
+                          child: DropdownMenu(
+                            dropdownMenuEntries: [],
+                          ),
+                        ),
+                      )
+                    : DropdownMenu(
+                        onSelected: (value) async {
+                          contact = (await _storageController
+                              .getContactByPhone(value ?? ""))!;
+                        },
+                        dropdownMenuEntries: contacts
+                            .map((e) =>
+                                DropdownMenuEntry(value: e.name, label: e.name))
+                            .toList(),
+                      ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
