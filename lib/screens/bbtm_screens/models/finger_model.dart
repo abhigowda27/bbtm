@@ -7,7 +7,7 @@ class FingerPrintDetails {
   FingerPrintDetails({required this.names, required this.switchName});
 
   FingerPrintDetails.fromJson(Map<String, dynamic> json) {
-    debugPrint("${json}");
+    debugPrint("$json");
     names = (json['names'] as List).map((e) => e.toString()).toList();
     switchName = json['switchName'];
   }
