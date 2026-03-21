@@ -19,28 +19,25 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                color: Theme.of(context).appColors.background,
-              ),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              text,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).appColors.background,
-                  ),
+    return ElevatedButton(
+      onPressed: onPressed,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[
+            Icon(
+              icon,
+              color: Theme.of(context).appColors.background,
             ),
+            const SizedBox(width: 8),
           ],
-        ),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).appColors.background,
+                ),
+          ),
+        ],
       ),
     );
   }

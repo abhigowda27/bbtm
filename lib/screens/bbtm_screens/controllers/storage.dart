@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bbtml_new/main.dart';
+import 'package:bbtml_new/screens/bbtm_screens/models/finger_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -220,6 +221,12 @@ class StorageController {
     }
 
     return model;
+  }
+
+  Future<List<SwitchDetails>> readSwitchesByType(String type) async {
+    List<SwitchDetails> switches = await readSwitches();
+
+    return switches.where((element) => element.switchType == type).toList();
   }
 
   Future<SwitchDetails?>? getSwitchBySSID(String? switchName) async {
@@ -481,6 +488,8 @@ class StorageController {
     );
   }
 
+  //MACS
+
   Future<void> deleteMacs() async {
     await storage.delete(key: "macs");
   }
@@ -523,10 +532,7 @@ class StorageController {
     );
   }
 
-  Future<bool> isMacIDExists(
-    String macId,
-    switchID,
-  ) async {
+  Future<bool> isMacIDExists(String macId, switchID) async {
     List<MacsDetails> macsList = await readMacs();
     for (var details in macsList) {
       if (details.id == macId && details.switchDetails.switchId == switchID) {
@@ -576,8 +582,102 @@ class StorageController {
   // Delete a MAC card's state
   Future<void> deleteMacState(MacsDetails mac) async {
     await storage.delete(key: 'mac_${mac.id}_${mac.switchDetails.switchSSID}');
+  } //MACS
+
+  //Finger prints (LOCKS)
+
+  Future<void> deleteFingerPrints() async {
+    await storage.delete(key: "fingerprint");
   }
 
+  Future<List<FingerPrintDetails>> readFingerPrints() async {
+    String? switches = await storage.read(key: "fingerprint");
+
+    if (switches == null) {
+      return [];
+    }
+
+    List<dynamic> jsonContacts = json.decode(switches);
+
+    return jsonContacts.map((e) => FingerPrintDetails.fromJson(e)).toList();
+  }
+
+  Future<List<FingerPrintDetails>> readFingerPrintsBySwitch(
+      String switchName) async {
+    String? switches = await storage.read(key: "fingerprint");
+
+    if (switches == null) {
+      return [];
+    }
+
+    List<dynamic> jsonContacts = json.decode(switches);
+
+    List<FingerPrintDetails> fingerprints =
+        jsonContacts.map((e) => FingerPrintDetails.fromJson(e)).toList();
+
+    return fingerprints
+        .where((element) => element.switchName == switchName)
+        .toList();
+  }
+
+  Future<void> deleteOneFingerPrint(String name, String switchName) async {
+    List<FingerPrintDetails> switchList = await readFingerPrints();
+
+    for (var element in switchList) {
+      if (element.switchName == switchName) {
+        element.names.remove(name);
+      }
+    }
+
+    // Optional: remove switch entry if no fingerprints left
+    switchList.removeWhere((element) => element.names.isEmpty);
+
+    List listContentsInJson = switchList.map((e) => e.toJson()).toList();
+
+    await storage.write(
+      key: "fingerprint",
+      value: json.encode(listContentsInJson),
+    );
+  }
+
+  Future<void> addFingerPrint(String name, SwitchDetails switchDetails) async {
+    List<FingerPrintDetails> switchesList = await readFingerPrints();
+
+    int index = switchesList
+        .indexWhere((e) => e.switchName == switchDetails.switchSSID);
+
+    if (index != -1) {
+      // Switch already exists
+      if (switchesList[index].names.contains(name)) {
+        final scaffold = ScaffoldMessenger.of(navigatorKey.currentContext!);
+        scaffold.showSnackBar(
+          const SnackBar(
+            content:
+                Text("Same name fingerprint already exists for this switch"),
+          ),
+        );
+        return;
+      }
+
+      // Add name to existing list
+      switchesList[index].names.add(name);
+    } else {
+      // Create new fingerprint entry
+      final FingerPrintDetails fingerPrintDetails = FingerPrintDetails(
+        names: [name],
+        switchName: switchDetails.switchSSID,
+      );
+
+      switchesList.add(fingerPrintDetails);
+    }
+
+    List listContectsInJson = switchesList.map((e) => e.toJson()).toList();
+
+    await storage.write(
+      key: "fingerprint",
+      value: json.encode(listContectsInJson),
+    );
+  }
   // QR PIN
 
   Future<String?> getQrPin() async {

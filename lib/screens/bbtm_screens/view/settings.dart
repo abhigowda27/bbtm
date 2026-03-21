@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/main.dart';
+import 'package:bbtml_new/screens/bbtm_screens/view/fingerprints_for_lock/finger_page.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/switches/factory_reset.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -60,39 +61,48 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text("SETTINGS"),
       ),
       body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
         child: Column(
+          spacing: 20,
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(
-              height: 20,
+            Text(
+              'WIFI is connected to Wifi Name',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                'WIFI is connected to Wifi Name',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                '"$_connectionStatus"',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium!
-                    .copyWith(color: Theme.of(context).appColors.primary),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
+            Text(
+              '"$_connectionStatus"',
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium!
+                  .copyWith(color: Theme.of(context).appColors.primary),
             ),
             CustomButton(
               text: "Open WIFI Settings",
               icon: Icons.wifi_find,
               onPressed: () {
                 AppSettings.openAppSettings(type: AppSettingsType.wifi);
+              },
+            ),
+            CustomButton(
+              text: "Finger Prints (Locks)",
+              icon: Icons.fingerprint_outlined,
+              onPressed: () async {
+                List<SwitchDetails> switches =
+                    await _storageController.readSwitches();
+                String localConnectStatus = _connectionStatus;
+                for (var element in switches) {
+                  if (localConnectStatus == (element.switchSSID) &&
+                      element.switchType == "DOOR_LOCK") {
+                    Navigator.push(navigatorKey.currentContext!,
+                        MaterialPageRoute(builder: (context) => FingersPage()));
+                    return;
+                  }
+                }
+                showToast(navigatorKey.currentContext!,
+                    "You may not be connected to AP Mode of lock.");
               },
             ),
             CustomButton(
@@ -122,34 +132,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // floatingActionButton: Stack(
-      //   children: [
-      //     Align(
-      //       alignment: Alignment.bottomRight,
-      //       child: Column(
-      //         mainAxisSize: MainAxisSize.min,
-      //         children: [
-      //           FloatingActionButton(
-      //             onPressed: () {
-      //               OpenSettings.openWIFISetting();
-      //             },
-      //             child: const Icon(Icons.wifi_find),
-      //             backgroundColor: backGroundColour,
-      //           ),
-      //           const SizedBox(height: 5), // Adjust spacing between buttons
-      //           FloatingActionButton(
-      //             onPressed: () {
-      //               OpenSettings.openLocationSourceSetting();
-      //             },
-      //             backgroundColor: backGroundColour,
-      //             child: const Icon(Icons.location_on_rounded),
-      //           ),
-      //         ],
-      //       ),
-      //     ),
-      //   ],
-      // ),
     );
   }
 }
