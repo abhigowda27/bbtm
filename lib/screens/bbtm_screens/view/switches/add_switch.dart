@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/models/appliance_model.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
@@ -53,6 +54,21 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
   List<String> _availableSwitchTypes = [];
   bool loading = false;
   List<Map<String, TextEditingController>> selectedSwitches = [];
+  final TextEditingController fromController = TextEditingController();
+  final TextEditingController toController = TextEditingController();
+
+  String? error;
+
+  void validate() {
+    final from = int.tryParse(fromController.text);
+    final to = int.tryParse(toController.text);
+
+    if (from != null && to != null && from > to) {
+      setState(() => error = "From should be less than To");
+    } else {
+      setState(() => error = null);
+    }
+  }
 
   @override
   void initState() {
@@ -109,6 +125,29 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
       selectedSwitches.clear();
     });
   }
+
+  List<int> getWattList() {
+    final code = _selectedAppliance?.code;
+
+    if (code != null && applianceWattMap.containsKey(code)) {
+      return applianceWattMap[code]!;
+    }
+    return applianceWattMap["DEFAULT"]!;
+  }
+
+  Map<String, List<int>> applianceWattMap = {
+    "LIGHT": [20, 50, 80],
+    "FAN": [20, 50, 100],
+    "AC": [500, 1000, 1500, 2000],
+    "TV": [50, 100, 150, 200],
+    "FRIDGE": [100, 150, 200, 300],
+    "WM": [500, 1000, 1500],
+    "MW": [800, 1000, 1200, 1500],
+    "GEYSER": [1000, 1500, 2000],
+    "DOOR_LOCK": [5, 10, 20],
+    "DEFAULT": [20, 50, 100, 500, 1000, 1500, 2000],
+  };
+  int? selectedValue;
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +235,49 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                 },
                 controller: _passKey,
                 hintText: "New Passkey",
+              ),
+              richTxt(text: "Select watt range"),
+              DropdownMenuFormField<int>(
+                width: double.infinity,
+                inputDecorationTheme: InputDecorationTheme(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                alignmentOffset: const Offset(0, 5),
+                menuStyle: MenuStyle(
+                  visualDensity: VisualDensity.compact,
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                hintText: _selectedAppliance == null
+                    ? "Select appliance first"
+                    : "Select Wattage",
+                enabled: _selectedAppliance != null,
+                dropdownMenuEntries: getWattList().map((watt) {
+                  return DropdownMenuEntry<int>(
+                    value: watt,
+                    label: CommonServices().formatWatt(watt),
+                  );
+                }).toList(),
+                onSelected: (value) {
+                  FocusScope.of(context).unfocus();
+                  setState(() {
+                    selectedValue = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return "Please select wattage";
+                  }
+                  return null;
+                },
               ),
               SizedBox(height: height * 0.03),
               const Text(
@@ -286,7 +368,6 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         hintMaxLines: 1,
-
                         hintStyle: Theme.of(context).textTheme.bodyLarge,
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 10),
@@ -387,6 +468,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                       setState(() {
                         loading = true;
                       });
+                      debugPrint(_switchId.text);
                       bool exists = await _storageController.isSwitchNameExists(
                           _ssid.text, _switchId.text);
                       if (exists) {
@@ -396,7 +478,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                             return AlertDialog(
                               title: const Text('Update Switch'),
                               content: const Text(
-                                  'SwitchId is already Exist, Do you want to update the existing switch'),
+                                  'Switch ID or Name  is already Exist, Do you want to update the existing switch'),
                               actions: [
                                 OutlinedButton(
                                   onPressed: () {
@@ -431,6 +513,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                                       iPAddress: Constants.routerIP,
                                       switchTypes: renamedSwitches,
                                       selectedFan: fanName ?? "",
+                                      wattage: selectedValue ?? 0,
                                     );
                                     Navigator.pop(context);
                                     try {
@@ -492,16 +575,16 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                         String? fanName =
                             _addFan == "Yes" ? _fanNameController.text : null;
                         SwitchDetails switchDetails = SwitchDetails(
-                          privatePin: _privatePin.text,
-                          switchId: _switchId.text,
-                          switchSSID: _ssid.text,
-                          switchPassKey: _passKey.text,
-                          switchPassword: _password.text,
-                          iPAddress: Constants.routerIP,
-                          switchTypes: renamedSwitches,
-                          switchType: _selectedAppliance?.code,
-                          selectedFan: fanName ?? "",
-                        );
+                            privatePin: _privatePin.text,
+                            switchId: _switchId.text,
+                            switchSSID: _ssid.text,
+                            switchPassKey: _passKey.text,
+                            switchPassword: _password.text,
+                            iPAddress: Constants.routerIP,
+                            switchTypes: renamedSwitches,
+                            switchType: _selectedAppliance?.code,
+                            selectedFan: fanName ?? "",
+                            wattage: selectedValue ?? 0);
                         try {
                           await ApiConnect.hitApiGet(
                             "${Constants.routerIP}/",
@@ -640,6 +723,7 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                           onTap: () {
                             setState(() {
                               _selectedAppliance = appliance;
+                              selectedValue = null;
                             });
                             Navigator.pop(context);
                           },

@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:basic_utils/basic_utils.dart';
 import 'package:bbtml_new/constants.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../common/get_device_id.dart';
 import '../common/globals.dart' as globals;
@@ -18,6 +21,110 @@ class ApiProvider {
       "deviceid": globals.deviceId ?? ''
     },
   ));
+
+  Future<bool> validateAssetCertificate(BuildContext context) async {
+    try {
+      debugPrint(globals.currentCertificatePath);
+      final certData = await rootBundle.loadString(
+        globals.currentCertificatePath,
+      );
+
+      final cert = X509Utils.x509CertificateFromPem(certData);
+
+      final subject = cert.tbsCertificate?.subject.toString() ?? "N/A";
+
+      final issuer = cert.tbsCertificate?.issuer.toString() ?? "N/A";
+
+      final startDate = cert.tbsCertificate?.validity.notBefore;
+
+      final endDate = cert.tbsCertificate?.validity.notAfter;
+
+      bool isValid = true;
+
+      // Expiry Check
+      if (endDate != null && DateTime.now().isAfter(endDate)) {
+        isValid = false;
+      }
+
+      // Not Yet Valid Check
+      if (startDate != null && DateTime.now().isBefore(startDate)) {
+        isValid = false;
+      }
+
+      debugPrint("Subject: $subject");
+      debugPrint("Issuer: $issuer");
+      debugPrint("Start Date: $startDate");
+      debugPrint("End Date: $endDate");
+      final formattedStartDate = startDate != null
+          ? DateFormat('dd MMM yyyy, hh:mm a').format(startDate.toLocal())
+          : "N/A";
+
+      final formattedEndDate = endDate != null
+          ? DateFormat('dd MMM yyyy, hh:mm a').format(endDate.toLocal())
+          : "N/A";
+      // Show Dialog
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) {
+            return AlertDialog(
+              title: Text(
+                isValid ? "Certificate is Valid" : "Certificate is Invalid",
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Subject:\n$subject"),
+                  const SizedBox(height: 10),
+                  Text("Issuer:\n$issuer"),
+                  const SizedBox(height: 10),
+                  Text("Valid From:\n$formattedStartDate"),
+                  const SizedBox(height: 10),
+                  Text("Valid Till:\n$formattedEndDate"),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+
+      return isValid;
+    } catch (e) {
+      debugPrint("Certificate Validation Failed: $e");
+
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          builder: (_) {
+            return AlertDialog(
+              title: const Text("Certificate Error"),
+              content: Text(e.toString()),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+
+      return false;
+    }
+  }
 
   Future<dynamic> login(Map<String, dynamic> payload) async {
     debugPrint("Payload Passing to Api=====> $payload");
@@ -268,11 +375,9 @@ class ApiProvider {
       final response = await _dio
           .post(
             '/api/devices/details',
-            options: Options(
-              headers: {
-                'Cookie': savedCookie,
-              },
-            ),
+            options: Options(headers: {
+              'Cookie': savedCookie,
+            }, validateStatus: (status) => true),
             data: payload,
           )
           .timeout(const Duration(seconds: 50));
@@ -280,13 +385,8 @@ class ApiProvider {
 
       debugPrint("Get Switch Status Api ResponseData=====> ${response.data}");
       return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Get Switch Status failed ${e.response?.data}');
-      } else {
-        throw Exception('Network error: ${e.message}');
-      }
     } catch (e) {
+      debugPrint("======$e");
       throw Exception(e.toString());
     }
   }

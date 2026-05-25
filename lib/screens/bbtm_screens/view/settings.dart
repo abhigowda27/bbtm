@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/fingerprints_for_lock/finger_page.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/switches/factory_reset.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
 import '../controllers/storage.dart';
@@ -24,35 +21,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final StorageController _storageController = StorageController();
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
-  late NetworkService _networkService;
-  @override
-  void initState() {
-    super.initState();
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
-  }
-
-  @override
-  void dispose() {
-    connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
-  }
+  final NetworkService _networkService = NetworkService();
 
   @override
   Widget build(BuildContext context) {
@@ -60,67 +29,68 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text("SETTINGS"),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          spacing: 20,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'WIFI is connected to Wifi Name',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            Text(
-              '"$_connectionStatus"',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium!
-                  .copyWith(color: Theme.of(context).appColors.primary),
-            ),
-            CustomButton(
-              text: "Open WIFI Settings",
-              icon: Icons.wifi_find,
-              onPressed: () {
-                AppSettings.openAppSettings(type: AppSettingsType.wifi);
-              },
-            ),
-            CustomButton(
-              text: "Finger Prints (Locks)",
-              icon: Icons.fingerprint_outlined,
-              onPressed: () {
-                Navigator.push(navigatorKey.currentContext!,
-                    MaterialPageRoute(builder: (context) => FingersPage()));
-              },
-            ),
-            CustomButton(
-              text: "Factory Reset",
-              icon: Icons.lock_reset_rounded,
-              bgmColor: Theme.of(context).appColors.redButton,
-              onPressed: () async {
-                List<SwitchDetails> switches =
-                    await _storageController.readSwitches();
-                String localConnectStatus = _connectionStatus;
-                for (var element in switches) {
-                  if (localConnectStatus == (element.switchSSID)) {
-                    Navigator.push(
-                        navigatorKey.currentContext!,
-                        MaterialPageRoute(
-                            builder: (context) => FactoryReset(
-                                  currentSwitch: _connectionStatus,
-                                  switchDetails: element,
-                                )));
-                    return;
-                  }
-                }
-                showToast(navigatorKey.currentContext!,
-                    "You may not be connected to AP Mode.");
-              },
-            ),
-          ],
-        ),
-      ),
+      body: ValueListenableBuilder<String?>(
+          valueListenable: _networkService.wifiNameNotifier,
+          builder: (context, wifiName, _) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                spacing: 20,
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'WIFI is connected to Wifi Name',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  Text(
+                    '"$wifiName"',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineMedium!
+                        .copyWith(color: Theme.of(context).appColors.primary),
+                  ),
+                  CustomButton(
+                    text: "Finger Prints (Locks)",
+                    icon: Icons.fingerprint_outlined,
+                    onPressed: () {
+                      Navigator.push(
+                          navigatorKey.currentContext!,
+                          MaterialPageRoute(
+                              builder: (context) => FingersPage()));
+                    },
+                  ),
+                  CustomButton(
+                    text: "Factory Reset",
+                    icon: Icons.lock_reset_rounded,
+                    bgmColor: Theme.of(context).appColors.redButton,
+                    onPressed: () async {
+                      List<SwitchDetails> switches =
+                          await _storageController.readSwitches();
+                      String localConnectStatus = wifiName ?? "Unknown";
+                      for (var element in switches) {
+                        if (localConnectStatus == (element.switchSSID)) {
+                          Navigator.push(
+                              navigatorKey.currentContext!,
+                              MaterialPageRoute(
+                                  builder: (context) => FactoryReset(
+                                        currentSwitch: wifiName ?? "Unknown",
+                                        switchDetails: element,
+                                      )));
+                          return;
+                        }
+                      }
+                      showFlutterToast(
+                          "⚠️ You may not be connected to AP Mode.");
+                      AppSettings.openAppSettings(type: AppSettingsType.wifi);
+                      return;
+                    },
+                  ),
+                ],
+              ),
+            );
+          }),
     );
   }
 }

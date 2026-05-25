@@ -40,28 +40,42 @@ class _NearbyWifiPageState extends State<NearbyWifiPage> {
   Future<void> fetchNearbyWifi() async {
     setState(() => loading = true);
 
-    final canScan = await WiFiScan.instance.canStartScan();
-    if (canScan != CanStartScan.yes) {
-      debugPrint("Cannot start scan: $canScan");
-      setState(() => loading = false);
-      return;
-    }
+    const int maxRetries = 10;
+    int attempt = 0;
 
-    final didScan = await WiFiScan.instance.startScan();
-    if (!didScan) {
-      debugPrint("WiFi scan failed");
-      setState(() => loading = false);
-      return;
-    }
+    List<WiFiAccessPoint> networks = [];
 
-    final canGet = await WiFiScan.instance.canGetScannedResults();
-    if (canGet != CanGetScannedResults.yes) {
-      debugPrint("Cannot get scan results: $canGet");
-      setState(() => loading = false);
-      return;
-    }
+    while (attempt < maxRetries) {
+      attempt++;
 
-    final networks = await WiFiScan.instance.getScannedResults();
+      final canScan = await WiFiScan.instance.canStartScan();
+
+      if (canScan != CanStartScan.yes) {
+        debugPrint("❌ Cannot scan: $canScan");
+        break;
+      }
+
+      // 🔥 IMPORTANT: wait before fetching results
+      await Future.delayed(const Duration(seconds: 2));
+
+      final canGet = await WiFiScan.instance.canGetScannedResults();
+      if (canGet != CanGetScannedResults.yes) {
+        debugPrint("Cannot get results: $canGet");
+        break;
+      }
+
+      networks = await WiFiScan.instance.getScannedResults();
+
+      if (networks.isNotEmpty) {
+        debugPrint("✅ WiFi found: ${networks.length}");
+        break;
+      }
+
+      debugPrint("⚠️ Empty result, retrying... ($attempt/$maxRetries)");
+
+      // 🔥 IMPORTANT: longer delay to avoid throttling
+      await Future.delayed(const Duration(seconds: 4));
+    }
 
     setState(() {
       wifiList = networks;
@@ -126,12 +140,16 @@ class _NearbyWifiPageState extends State<NearbyWifiPage> {
                               horizontal: 16.0, vertical: 8),
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).appColors.primary
-                              .withValues(alpha: 0.06),
+                            color: Theme.of(context)
+                                .appColors
+                                .primary
+                                .withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Theme.of(context).appColors.primary
-                                .withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .appColors
+                                  .primary
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(

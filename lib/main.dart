@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bbtml_new/api_providers/theme_provider.dart';
 import 'package:bbtml_new/common/globals.dart' as globals;
 import 'package:bbtml_new/controllers/shared_preference.dart';
+import 'package:bbtml_new/screens/bbtm_screens/controllers/wifi.dart';
 import 'package:bbtml_new/screens/splash_screen.dart';
 import 'package:bbtml_new/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await SharedPreferenceServices().init();
+    await NetworkService().init();
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
@@ -45,21 +47,24 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'BBT Switch',
-      theme: lightTheme(),
-      darkTheme: darkTheme(),
-      themeMode: themeProvider.themeMode,
-      home: const SplashScreen(),
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: const TextScaler.linear(1.0)),
-          child: child!,
-        );
-      },
+    return SafeArea(
+      top: false,
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'BBT Switch',
+        theme: lightTheme(),
+        darkTheme: darkTheme(),
+        themeMode: themeProvider.themeMode,
+        home: const SplashScreen(),
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.0)),
+            child: child!,
+          );
+        },
+      ),
     );
   }
 }

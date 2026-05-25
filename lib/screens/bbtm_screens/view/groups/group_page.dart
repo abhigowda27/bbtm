@@ -219,6 +219,8 @@ class _GroupingPageState extends State<GroupingPage> {
                                                   groupDetails.selectedRouter,
                                               selectedSwitches:
                                                   groupDetails.selectedSwitches,
+                                              maximumWattage:
+                                                  groupDetails.maximumWattage,
                                             )));
                               },
                               child: GroupCard(

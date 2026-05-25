@@ -9,7 +9,6 @@ import 'package:bbtml_new/screens/bbtm_screens/view/settings.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/switches/switch_page.dart';
 import 'package:bbtml_new/screens/switches/switch_page_cloud.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -87,23 +86,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         color: Colors.orange),
   ];
 
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
-  late NetworkService _networkService;
   bool _locationEnabled = false;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       requestAllPermissions();
-    });
-    _networkService = NetworkService();
-    _initNetworkInfo();
-
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
     });
   }
 
@@ -219,12 +209,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      // ✅ Check again when user comes back from Settings
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
       if (serviceEnabled && !_locationEnabled) {
         setState(() => _locationEnabled = true);
-        // Close dialog if still open
-        _initNetworkInfo();
+
         if (Navigator.canPop(navigatorKey.currentContext!)) {
           Navigator.of(navigatorKey.currentContext!).pop();
         }
@@ -238,18 +227,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    connectivitySubscription?.cancel();
     super.dispose();
-  }
-
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
   }
 
   @override
@@ -262,8 +240,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: ImageCarouselWidget(
-              connectionStatus: _connectionStatus,
+            child: ValueListenableBuilder<String?>(
+              valueListenable: NetworkService().wifiNameNotifier,
+              builder: (context, wifiName, _) {
+                return ImageCarouselWidget(
+                  connectionStatus: wifiName ?? "Unknown",
+                );
+              },
             ),
           ),
           SliverPadding(
@@ -273,8 +256,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: width > 600 ? 4 : 3,
                 childAspectRatio: 0.9,
-                crossAxisSpacing:width > 600 ? 25: 20,
-                mainAxisSpacing:width > 600 ? 25: 20,
+                crossAxisSpacing: width > 600 ? 25 : 20,
+                mainAxisSpacing: width > 600 ? 25 : 20,
               ),
               itemBuilder: (context, index) {
                 final item = lists[index];

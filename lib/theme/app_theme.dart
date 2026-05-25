@@ -138,10 +138,10 @@ ThemeData darkTheme() {
       centerTitle: true,
       titleTextStyle: TextStyle(
           fontWeight: FontWeight.w600,
-          color: darkAppColors.background,
+          color: darkAppColors.textPrimary,
           fontSize: 24),
       backgroundColor: darkAppColors.primary,
-      foregroundColor: darkAppColors.background,
+      foregroundColor: darkAppColors.textPrimary,
     ),
     dividerColor: darkAppColors.textPrimary,
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -228,7 +228,7 @@ const lightAppColors = AppColors(
   white: Color(0xFFFFFFFF),
   black: Color(0xFF000000),
   grey: Color(0xFFB0BEC5), // Cool gray for borders, disabled states
-  backgroundDark: Color(0xFFF0F0F3), // Subtle light-gray background
+  backgroundDark: Color(0xFF9BD2F1), // Subtle light-gray background
   red: Color(0xFFF58D8D), // Vibrant red for alerts
   redButton: Color(0xFFD32F2F), // Deep red for danger buttons
   green: Color(0xFF66BB6A), // Medium green for success icons

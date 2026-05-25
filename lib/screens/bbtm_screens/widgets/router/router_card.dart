@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/blocs/switch/switch_bloc.dart';
 import 'package:bbtml_new/blocs/switch/switch_event.dart';
@@ -11,7 +9,6 @@ import 'package:bbtml_new/screens/bbtm_screens/view/routers/router_on_off.dart';
 import 'package:bbtml_new/screens/switches/switch_page_cloud.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:bbtml_new/widgets/common_widgets.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -42,42 +39,43 @@ class _RouterCardState extends State<RouterCard> {
   bool hide = true;
   bool isExpanded = false;
   final StorageController _storageController = StorageController();
-  final Connectivity _connectivity = Connectivity();
-  late NetworkService _networkService;
-  String _connectionStatus = 'Unknown';
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
   final SwitchBloc _addToCloudBloc = SwitchBloc();
-  @override
-  void initState() {
-    super.initState();
-    isExpanded = !widget.showOptions;
-
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
-  }
+  final NetworkService _networkService = NetworkService();
+  String _wifiName = "";
+  late VoidCallback _wifiListener;
 
   @override
   void dispose() {
-    connectivitySubscription?.cancel();
+    _networkService.wifiNameNotifier.removeListener(_wifiListener);
     super.dispose();
   }
 
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() {
-      _connectionStatus = wifiName ?? "Unknown";
-    });
+  @override
+  void initState() {
+    super.initState();
+
+    isExpanded = !widget.showOptions;
+
+    _wifiName = _networkService.wifiName;
+
+    _wifiListener = () {
+      if (!mounted) return;
+      setState(() {
+        _wifiName = _networkService.wifiName;
+      });
+    };
+
+    _networkService.wifiNameNotifier.addListener(_wifiListener);
   }
 
-  Future<void> _updateConnectionStatus(List<ConnectivityResult> results) async {
-    for (var result in results) {
-      debugPrint("$result");
-      _initNetworkInfo();
-    }
+  // ✅ Helper method (clean + reusable)
+  bool _isConnectedToRouter() {
+    return _wifiName
+            .toLowerCase()
+            .contains(widget.routerDetails.routerName.toLowerCase()) ||
+        widget.routerDetails.routerName
+            .toLowerCase()
+            .contains(_wifiName.toLowerCase());
   }
 
   @override
@@ -87,9 +85,7 @@ class _RouterCardState extends State<RouterCard> {
     return InkWell(
       onTap: widget.showOptions
           ? () {
-              (!_connectionStatus.contains(widget.routerDetails.routerName) &&
-                      !widget.routerDetails.routerName
-                          .contains(_connectionStatus))
+              !_isConnectedToRouter()
                   ? Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -114,15 +110,17 @@ class _RouterCardState extends State<RouterCard> {
             ? BoxDecoration(
                 boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).appColors.textSecondary
-                        .withValues(alpha: 0.1),
+                      color: Theme.of(context)
+                          .appColors
+                          .textSecondary
+                          .withValues(alpha: 0.1),
                       spreadRadius: 5,
                       blurRadius: 7,
                       offset: const Offset(2, 2),
                     ),
                   ],
-                color: Theme.of(context).appColors.primary
-                  .withValues(alpha: 0.15),
+                color:
+                    Theme.of(context).appColors.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12))
             : null,
         child: Column(
@@ -136,13 +134,17 @@ class _RouterCardState extends State<RouterCard> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).appColors.primary
-                        .withValues(alpha: 0.12),
+                      color: Theme.of(context)
+                          .appColors
+                          .primary
+                          .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).appColors.textSecondary
-                            .withValues(alpha: 0.1),
+                          color: Theme.of(context)
+                              .appColors
+                              .textSecondary
+                              .withValues(alpha: 0.1),
                           spreadRadius: 5,
                           blurRadius: 7,
                           offset: const Offset(5, 5),
@@ -213,6 +215,10 @@ class _RouterCardState extends State<RouterCard> {
                           ],
                         ],
                       ),
+                      if (widget.routerDetails.wattage != 0) ...[
+                        Text(CommonServices()
+                            .formatWatt(widget.routerDetails.wattage))
+                      ]
                     ],
                   ),
                 ),
@@ -286,29 +292,23 @@ class _RouterCardState extends State<RouterCard> {
                     IconButton(
                         tooltip: "timer",
                         onPressed: () {
-                          debugPrint(
-                              "${_connectionStatus.contains(widget.routerDetails.routerName)}");
-                          debugPrint(
-                              "${widget.routerDetails.routerName.contains(_connectionStatus)}");
-                          if (!_connectionStatus
-                                  .contains(widget.routerDetails.routerName) &&
-                              !widget.routerDetails.routerName
-                                  .contains(_connectionStatus)) {
+                          if (!_isConnectedToRouter()) {
                             showFlutterToast(
-                                "You should be connected to ${widget.routerDetails.routerName} to add the Proceed");
+                                "You should be connected to ${widget.routerDetails.routerName} to proceed");
                             AppSettings.openAppSettings(
                                 type: AppSettingsType.wifi);
                             return;
                           }
+
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ScheduleOnOffPage(
-                                        switchName:
-                                            widget.routerDetails.switchName,
-                                        ipAddress:
-                                            widget.routerDetails.iPAddress!,
-                                      )));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ScheduleOnOffPage(
+                                switchName: widget.routerDetails.switchName,
+                                ipAddress: widget.routerDetails.iPAddress!,
+                              ),
+                            ),
+                          );
                         },
                         icon: Icon(Icons.access_alarms_sharp,
                             color: Theme.of(context).appColors.textPrimary)),
@@ -412,8 +412,8 @@ class _RouterCardState extends State<RouterCard> {
   void showInfo() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).appColors.background
-        .withValues(alpha: 0.75),
+      backgroundColor:
+          Theme.of(context).appColors.background.withValues(alpha: 0.75),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -436,8 +436,10 @@ class _RouterCardState extends State<RouterCard> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).appColors.primary
-                                .withValues(alpha: 0.12),
+                              color: Theme.of(context)
+                                  .appColors
+                                  .primary
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Image.asset(
@@ -501,15 +503,18 @@ class _RouterCardState extends State<RouterCard> {
                                   final switchType = entry.value;
 
                                   return Card(
-                                    color: Theme.of(context).appColors.primary
-                                      .withValues(alpha: 0.5),
+                                    color: Theme.of(context)
+                                        .appColors
+                                        .primary
+                                        .withValues(alpha: 0.5),
                                     margin:
                                         const EdgeInsets.symmetric(vertical: 4),
                                     child: ListTile(
                                       leading: CircleAvatar(
-                                        backgroundColor:
-                                            Theme.of(context).appColors.primary
-                                              .withValues(alpha: 0.5),
+                                        backgroundColor: Theme.of(context)
+                                            .appColors
+                                            .primary
+                                            .withValues(alpha: 0.5),
                                         child: Text("${index + 1}"),
                                       ),
                                       titleTextStyle: Theme.of(context)

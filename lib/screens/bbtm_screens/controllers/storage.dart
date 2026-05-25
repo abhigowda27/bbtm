@@ -14,8 +14,13 @@ import '../models/schedule_model.dart';
 import '../models/switch_model.dart';
 
 class StorageController {
-  final FlutterSecureStorage storage = const FlutterSecureStorage();
-
+  final FlutterSecureStorage storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+      migrateOnAlgorithmChange: true,
+    ),
+  );
   // for Contacts
   void addContacts(ContactsModel contactsModel) async {
     List<ContactsModel> contactList = await readContacts();
@@ -94,6 +99,7 @@ class StorageController {
         element.selectedFan = switchDetails.selectedFan;
         element.switchType = switchDetails.switchType;
         element.switchTypes = switchDetails.switchTypes;
+        element.wattage = switchDetails.wattage;
         break;
       }
     }
@@ -115,6 +121,8 @@ class StorageController {
         element.selectedFan = switchDetails.selectedFan;
         element.switchTypes = switchDetails.switchTypes;
         element.switchType = switchDetails.switchType;
+        element.wattage = switchDetails.wattage;
+
         // Keep the name, password, and ipAddress the same
         element.deviceMacId = element.deviceMacId;
         element.routerName = element.routerName;
@@ -155,6 +163,7 @@ class StorageController {
         element.switchPassKey = switchDetails.switchPassKey;
         element.selectedFan = switchDetails.selectedFan;
         element.switchTypes = switchDetails.switchTypes;
+        element.wattage = switchDetails.wattage;
         break;
       }
     }
@@ -177,6 +186,8 @@ class StorageController {
         element.routerName = element.routerName;
         element.routerPassword = element.routerName;
         element.iPAddress = element.iPAddress;
+        element.wattage = switchDetails.wattage;
+
         break;
       }
     }

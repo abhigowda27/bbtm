@@ -390,33 +390,33 @@ class _GenerateQRPageState extends State<GenerateQRPage> {
   GenerateType generateType = GenerateType.switches;
 
   SwitchDetails switchh = SwitchDetails(
-    switchId: "default",
-    switchSSID: "def",
-    privatePin: "1234",
-    switchPassword: "default",
-    iPAddress: "0.0.0.0",
-    switchTypes: [],
-    selectedFan: "",
-  );
+      switchId: "default",
+      switchSSID: "def",
+      privatePin: "1234",
+      switchPassword: "default",
+      iPAddress: "0.0.0.0",
+      switchTypes: [],
+      selectedFan: "",
+      wattage: 0);
 
   RouterDetails router = RouterDetails(
-    switchID: "default",
-    routerName: "default",
-    routerPassword: "default",
-    switchPasskey: "default",
-    switchName: "default",
-    switchTypes: [],
-    iPAddress: '',
-    selectedFan: '',
-    deviceMacId: '',
-  );
+      switchID: "default",
+      routerName: "default",
+      routerPassword: "default",
+      switchPasskey: "default",
+      switchName: "default",
+      switchTypes: [],
+      iPAddress: '',
+      selectedFan: '',
+      deviceMacId: '',
+      wattage: 0);
 
   GroupDetails group = GroupDetails(
-    groupName: 'default',
-    selectedRouter: 'default',
-    selectedSwitches: [],
-    routerPassword: '',
-  );
+      groupName: 'default',
+      selectedRouter: 'default',
+      selectedSwitches: [],
+      routerPassword: '',
+      maximumWattage: 00);
 
   ContactsModel contact = ContactsModel(
     accessType: "default",

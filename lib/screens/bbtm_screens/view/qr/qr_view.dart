@@ -6,7 +6,6 @@ import 'package:bbtml_new/screens/bbtm_screens/controllers/wifi.dart';
 import 'package:bbtml_new/screens/bbtm_screens/view/qr/scan_qr_page.dart';
 import 'package:bbtml_new/screens/bbtm_screens/widgets/custom/toast.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -21,59 +20,25 @@ class QRView extends StatefulWidget {
   State<QRView> createState() => _QRViewState();
 }
 
-class _QRViewState extends State<QRView> with WidgetsBindingObserver {
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
-  late NetworkService _networkService;
-
+class _QRViewState extends State<QRView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scanQR();
     });
   }
 
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
-      _initNetworkInfo();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-
-    connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
   SwitchDetails details = SwitchDetails(
-      switchId: "Unknown",
-      switchSSID: "Unknown",
-      switchPassword: "Unknown",
-      privatePin: "1234",
-      iPAddress: "Unknown",
-      switchTypes: [],
-      selectedFan: "");
+    switchId: "Unknown",
+    switchSSID: "Unknown",
+    switchPassword: "Unknown",
+    privatePin: "1234",
+    iPAddress: "Unknown",
+    switchTypes: [],
+    selectedFan: "",
+    wattage: 0,
+  );
 
   // Future<void> scanQR() async {
   //   String barcodeScanRes;
@@ -130,17 +95,17 @@ class _QRViewState extends State<QRView> with WidgetsBindingObserver {
 
       setState(() {
         details = SwitchDetails(
-          switchId: jsonR['SwitchId'],
-          privatePin: jsonR['privatePin'],
-          switchSSID: jsonR['SwitchSSID'],
-          switchPassword: jsonR['SwitchPassword'],
-          iPAddress: jsonR['IPAddress'],
-          switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
-              .map((e) => e.toString())
-              .toList(),
-          switchPassKey: jsonR['SwitchPasskey'],
-          selectedFan: jsonR['SelectedFan'],
-        );
+            switchId: jsonR['SwitchId'],
+            privatePin: jsonR['privatePin'],
+            switchSSID: jsonR['SwitchSSID'],
+            switchPassword: jsonR['SwitchPassword'],
+            iPAddress: jsonR['IPAddress'],
+            switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList(),
+            switchPassKey: jsonR['SwitchPasskey'],
+            selectedFan: jsonR['SelectedFan'],
+            wattage: 0);
       });
     } catch (e) {
       debugPrint("Invalid QR JSON: $e");
@@ -171,8 +136,10 @@ class _QRViewState extends State<QRView> with WidgetsBindingObserver {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).appColors.textSecondary
-                            .withValues(alpha: 0.4),
+                          color: Theme.of(context)
+                              .appColors
+                              .textSecondary
+                              .withValues(alpha: 0.4),
                           spreadRadius: 2,
                           blurRadius: 1,
                           offset: const Offset(2, 4),
@@ -203,12 +170,16 @@ class _QRViewState extends State<QRView> with WidgetsBindingObserver {
                         Container(
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).appColors.primary
-                              .withValues(alpha: 0.06),
+                            color: Theme.of(context)
+                                .appColors
+                                .primary
+                                .withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Theme.of(context).appColors.primary
-                                .withValues(alpha: 0.3),
+                              color: Theme.of(context)
+                                  .appColors
+                                  .primary
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -233,43 +204,53 @@ class _QRViewState extends State<QRView> with WidgetsBindingObserver {
                               .copyWith(fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          '"$_connectionStatus"',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(
-                                color: Theme.of(context).appColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
+                        ValueListenableBuilder<String?>(
+                          valueListenable: NetworkService().wifiNameNotifier,
+                          builder: (context, wifiName, _) {
+                            return Text(
+                              '"${wifiName ?? "Unknown"}"',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium!
+                                  .copyWith(
+                                    color: Theme.of(context).appColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              textAlign: TextAlign.center,
+                            );
+                          },
+                        )
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  CustomButton(
-                    icon: FontAwesomeIcons.circleArrowRight,
-                    text: "Proceed",
-                    onPressed: () {
-                      if (!_connectionStatus.contains(details.switchSSID) &&
-                          !details.switchSSID.contains(_connectionStatus)) {
-                        showFlutterToast(
-                            "⚠️ Action required: Connect to WiFi '${details.switchSSID}' with the given password and proceed again.");
-                        AppSettings.openAppSettings(type: AppSettingsType.wifi);
-                        return;
-                      }
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: CustomButton(
+                        icon: FontAwesomeIcons.circleArrowRight,
+                        text: "Proceed",
+                        onPressed: () {
+                          final wifiName = NetworkService().wifiName;
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddNewSwitchesPage(
-                            switchDetails: details,
-                          ),
-                        ),
-                      );
-                    },
+                          if (!wifiName.contains(details.switchSSID) &&
+                              !details.switchSSID.contains(wifiName)) {
+                            showFlutterToast(
+                                "⚠️ Action required: Connect to WiFi '${details.switchSSID}' with the given password and proceed again.");
+                            AppSettings.openAppSettings(
+                                type: AppSettingsType.wifi);
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddNewSwitchesPage(
+                                switchDetails: details,
+                              ),
+                            ),
+                          );
+                        }),
                   ),
                 ],
               ));

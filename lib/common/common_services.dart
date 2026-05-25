@@ -1,3 +1,4 @@
+import 'package:bbtml_new/main.dart';
 import 'package:flutter/material.dart';
 
 class CommonServices {
@@ -24,6 +25,19 @@ class CommonServices {
     );
   }
 
+  String formatWatt(int watt) {
+    if (watt >= 1000) {
+      double kw = watt / 1000;
+      if (kw % 1 == 0) {
+        return "${kw.toInt()}kW";
+      } else {
+        return "${kw.toStringAsFixed(1)}kW";
+      }
+    } else {
+      return "${watt}W";
+    }
+  }
+
   // Hide Loading Dialog
   static void hideLoadingDialog(BuildContext context) {
     Navigator.of(context, rootNavigator: true).pop();
@@ -38,11 +52,40 @@ class CommonServices {
 
   // Show Failure Widget
   static Widget failureWidget(final VoidCallback? onRetry) {
-    return Column(
-      children: [
-        Image.asset("assets/images/something_went_wrong.png"),
-        ElevatedButton(onPressed: onRetry, child: const Text("Retry"))
-      ],
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset("assets/images/something_went_wrong.png"),
+          ElevatedButton(onPressed: onRetry, child: const Text("Retry"))
+        ],
+      ),
+    );
+  }
+
+  static Widget apiFailureWidget({
+    String text = "Something went Wrong",
+    required VoidCallback onRetry,
+  }) {
+    return Center(
+      child: Column(
+        spacing: 20,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: Theme.of(navigatorKey.currentContext!)
+                .textTheme
+                .headlineLarge!
+                .copyWith(color: Colors.redAccent),
+          ),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: const Text("Retry"),
+          ),
+        ],
+      ),
     );
   }
 

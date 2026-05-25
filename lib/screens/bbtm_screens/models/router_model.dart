@@ -9,18 +9,21 @@ class RouterDetails {
   late String? iPAddress;
   late String? deviceMacId;
   late String switchPasskey;
+  late int wattage;
 
-  RouterDetails(
-      {required this.switchID,
-      required this.routerName,
-      required this.routerPassword,
-      required this.iPAddress,
-      this.deviceMacId,
-      required this.selectedFan,
-      required this.switchTypes,
-      required this.switchPasskey,
-      required this.switchName,
-      this.switchType});
+  RouterDetails({
+    required this.switchID,
+    required this.routerName,
+    required this.routerPassword,
+    required this.iPAddress,
+    this.deviceMacId,
+    required this.selectedFan,
+    required this.switchTypes,
+    required this.switchPasskey,
+    required this.switchName,
+    this.switchType,
+    required this.wattage,
+  });
 
   RouterDetails.fromJson(Map<String, dynamic> json) {
     switchID = json['SwitchId'];
@@ -33,6 +36,7 @@ class RouterDetails {
     iPAddress = json['IPAddress'];
     deviceMacId = json["macId"];
     switchType = json['switchType'];
+    wattage = json['wattage'];
   }
 
   Map<String, dynamic> toJson() {
@@ -47,6 +51,7 @@ class RouterDetails {
     data['IPAddress'] = iPAddress;
     data['macId'] = deviceMacId;
     data['switchType'] = switchType;
+    data['wattage'] = wattage;
     return data;
   }
 }

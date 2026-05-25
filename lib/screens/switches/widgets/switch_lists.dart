@@ -314,12 +314,16 @@ class _SwitchesCardState extends State<SwitchesCard> {
                       ),
                       const SizedBox(width: 10),
                       ToggleButtons(
-                        color: Theme.of(context).colorScheme.onSurface
-                          .withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(5),
                         selectedColor: Theme.of(context).appColors.primary,
-                        fillColor: Theme.of(context).appColors.primary
-                          .withValues(alpha: 0.1),
+                        fillColor: Theme.of(context)
+                            .appColors
+                            .primary
+                            .withValues(alpha: 0.1),
                         borderColor: Theme.of(context).dividerColor,
                         selectedBorderColor:
                             Theme.of(context).appColors.primary,
@@ -361,7 +365,6 @@ class _SwitchesCardState extends State<SwitchesCard> {
                             final device0 = filteredDeviceList[index];
                             final imageUrl = device0["details"]["icon"] ?? "";
                             int status = device0["details"]["status"] ?? 0;
-                            debugPrint("${device0.runtimeType}");
                             return InkWell(
                               onTap: () async {
                                 (device0["device_type"] == 3)
@@ -395,7 +398,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
                                         Theme.of(context)
                                             .appColors
                                             .buttonBackground
-                                          .withValues(alpha: 0.2),
+                                            .withValues(alpha: 0.2),
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -405,7 +408,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
                                         color: Theme.of(context)
                                             .appColors
                                             .textPrimary
-                                          .withValues(alpha: 0.1),
+                                            .withValues(alpha: 0.1),
                                         blurRadius: 5,
                                         offset: const Offset(2, 2),
                                       ),
@@ -450,7 +453,7 @@ class _SwitchesCardState extends State<SwitchesCard> {
                                               color: Theme.of(context)
                                                   .appColors
                                                   .textPrimary
-                                                .withValues(alpha: 0.3),
+                                                  .withValues(alpha: 0.3),
                                               size: screenWidth * 0.1,
                                             ),
                                           ),
@@ -520,8 +523,8 @@ class _SwitchesCardState extends State<SwitchesCard> {
     showModalBottomSheet(
       isDismissible: true,
       context: context,
-      backgroundColor: Theme.of(context).appColors.background
-        .withValues(alpha: 0.8),
+      backgroundColor:
+          Theme.of(context).appColors.background.withValues(alpha: 0.8),
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(20),
@@ -529,8 +532,10 @@ class _SwitchesCardState extends State<SwitchesCard> {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).appColors.background.withValues(alpha: 0.95),
-                Theme.of(context).appColors.buttonBackground
-                  .withValues(alpha: 0.8),
+                Theme.of(context)
+                    .appColors
+                    .buttonBackground
+                    .withValues(alpha: 0.8),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -574,8 +579,10 @@ class _SwitchesCardState extends State<SwitchesCard> {
                 ],
               ),
               Divider(
-                color: Theme.of(context).appColors.textPrimary
-                  .withValues(alpha: 0.1),
+                color: Theme.of(context)
+                    .appColors
+                    .textPrimary
+                    .withValues(alpha: 0.1),
                 thickness: 1,
               ),
               const SizedBox(height: 8),

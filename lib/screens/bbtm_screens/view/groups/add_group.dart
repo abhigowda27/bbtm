@@ -263,6 +263,7 @@
 //   }
 // }
 
+import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/controllers/storage.dart';
 import 'package:bbtml_new/screens/bbtm_screens/models/group_model.dart';
@@ -292,6 +293,8 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
   List<RouterDetails> availableRouters = [];
   Map<int, List<String>> selectedSwitchTypes = {};
   Map<int, String?> selectedFans = {};
+  List<int> applianceWattMap = [1000, 3000, 5000, 7500, 10000];
+  int? selectedValue;
 
   @override
   void initState() {
@@ -340,13 +343,15 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
   void handleRouterChange(String? selectedRouter) {
     setState(() {
       this.selectedRouter = selectedRouter;
+
+      selectedSwitches.clear();
+      selectedSwitchTypes.clear();
+      selectedFans.clear();
+
       if (selectedRouter != null) {
         fetchAvailableSwitches(selectedRouter);
       } else {
         availableSwitches = [];
-        selectedSwitches = [];
-        selectedFans.clear();
-        selectedSwitchTypes.clear();
       }
     });
   }
@@ -354,6 +359,10 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
   Future<void> handleSubmit() async {
     if (_groupName.text.isEmpty) {
       showToast(navigatorKey.currentContext!, "Group name cannot be empty.");
+      return;
+    }
+    if (selectedValue == null) {
+      showToast(navigatorKey.currentContext!, "Please select maximum wattage");
       return;
     }
     String groupName = _groupName.text;
@@ -370,7 +379,6 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
       RouterDetails? selectedRouterDetails = availableRouters
           .firstWhere((router) => router.routerName == selectedRouter);
 
-      // ✅ Debug log for selected switch types
       for (int i = 0; i < selectedSwitches.length; i++) {
         selectedSwitches[i].switchTypes = selectedSwitchTypes[i] ?? [];
         debugPrint(
@@ -378,11 +386,11 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
       }
 
       GroupDetails groupDetails = GroupDetails(
-        groupName: groupName,
-        selectedRouter: selectedRouterDetails.routerName,
-        routerPassword: selectedRouterDetails.routerPassword,
-        selectedSwitches: selectedSwitches,
-      );
+          groupName: groupName,
+          selectedRouter: selectedRouterDetails.routerName,
+          routerPassword: selectedRouterDetails.routerPassword,
+          selectedSwitches: selectedSwitches,
+          maximumWattage: selectedValue ?? 00);
 
       await _storage.saveGroupDetails(groupDetails);
 
@@ -409,7 +417,6 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final width = screenSize.width;
-    final height = screenSize.height;
 
     return Scaffold(
       appBar: AppBar(
@@ -417,115 +424,161 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            CustomTextField(
-              controller: _groupName,
-              hintText: "New Group Name",
-            ),
-            SizedBox(height: height * 0.03),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                hintStyle: Theme.of(context)
-                    .textTheme
-                    .titleSmall!
-                    .copyWith(fontWeight: FontWeight.bold),
-                hintText: "Select Router",
-                contentPadding: const EdgeInsets.all(10),
-                labelStyle: Theme.of(context).textTheme.titleSmall,
+        child: SingleChildScrollView(
+          child: Column(
+            spacing: width * 0.04,
+            children: [
+              CustomTextField(
+                controller: _groupName,
+                hintText: "New Group Name",
               ),
-              initialValue: selectedRouter,
-              onChanged: handleRouterChange,
-              items: availableRouters
-                  .map((routerItem) => DropdownMenuItem(
-                        value: routerItem.routerName,
-                        child: Text(routerItem.routerName),
-                      ))
-                  .toList(),
-            ),
-            SizedBox(height: height * 0.01),
-            Text("Selected Router:",
-                style: TextStyle(
-                    fontSize: width * 0.04, fontWeight: FontWeight.bold)),
-            if (selectedRouter != null)
-              ListTile(
-                title: Text(selectedRouter!),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete_outline_outlined,
-                      color: Theme.of(context).appColors.textSecondary),
-                  onPressed: () {
-                    setState(() {
-                      selectedRouter = null;
-                      availableSwitches = [];
-                      selectedSwitches = [];
-                      selectedFans.clear();
-                      selectedSwitchTypes.clear();
-                    });
-                  },
+              DropdownMenuFormField<int>(
+                width: double.infinity,
+                inputDecorationTheme: InputDecorationThemeData(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  hintStyle: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(fontWeight: FontWeight.bold),
+                  contentPadding: const EdgeInsets.all(10),
+                  labelStyle: Theme.of(context).textTheme.titleSmall,
                 ),
-              ),
-            SizedBox(height: height * 0.03),
-            DropdownButtonFormField<RouterDetails>(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                textStyle: Theme.of(context).textTheme.titleSmall,
+                alignmentOffset: const Offset(0, 5),
+                menuStyle: MenuStyle(
+                  visualDensity: VisualDensity.compact,
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
-                contentPadding: const EdgeInsets.all(10),
-                hintText: "Select Switches",
-                hintStyle: Theme.of(context)
-                    .textTheme
-                    .titleSmall!
-                    .copyWith(fontWeight: FontWeight.bold),
-                labelStyle: Theme.of(context).textTheme.titleSmall,
-              ),
-              initialValue: null,
-              onChanged: (selectedSwitch) {
-                setState(() {
-                  if (selectedSwitch != null &&
-                      !selectedSwitches.contains(selectedSwitch)) {
-                    selectedSwitches.add(selectedSwitch);
-
-                    // ✅ Pre-select all switch types for this switch
-                    selectedSwitchTypes[selectedSwitches.length - 1] =
-                        List<String>.from(selectedSwitch.switchTypes);
-
-                    // ✅ Initialize fan name if present
-                    if (selectedSwitch.selectedFan?.isNotEmpty == true) {
-                      selectedFans[selectedSwitches.length - 1] =
-                          selectedSwitch.selectedFan!;
-                    }
+                hintText: "Select Wattage",
+                dropdownMenuEntries: applianceWattMap.map((watt) {
+                  return DropdownMenuEntry<int>(
+                    value: watt,
+                    label: CommonServices().formatWatt(watt),
+                  );
+                }).toList(),
+                onSelected: (value) {
+                  FocusScope.of(context).unfocus();
+                  setState(() {
+                    selectedValue = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return "Please select wattage";
                   }
-                });
-              },
-              items: availableSwitches
-                  .map((switchItem) => DropdownMenuItem(
-                        value: switchItem,
-                        child: Text(
-                            "${switchItem.routerName}_${switchItem.switchName}"),
-                      ))
-                  .toList(),
-            ),
-            SizedBox(height: height * 0.01),
-            Text("Selected Switches:",
-                style: TextStyle(
-                    fontSize: width * 0.04, fontWeight: FontWeight.bold)),
-            Expanded(
-              child: ListView.separated(
+                  return null;
+                },
+              ),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  hintStyle: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(fontWeight: FontWeight.bold),
+                  hintText: "Select Router",
+                  contentPadding: const EdgeInsets.all(10),
+                  labelStyle: Theme.of(context).textTheme.titleSmall,
+                ),
+                initialValue: selectedRouter,
+                onChanged: handleRouterChange,
+                items: availableRouters
+                    .map((routerItem) => DropdownMenuItem(
+                          value: routerItem.routerName,
+                          child: Text(routerItem.routerName),
+                        ))
+                    .toList(),
+              ),
+              Text("Selected Router:",
+                  style: TextStyle(
+                      fontSize: width * 0.04, fontWeight: FontWeight.bold)),
+              if (selectedRouter != null)
+                ListTile(
+                  title: Text(selectedRouter!),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete_outline_outlined,
+                        color: Theme.of(context).appColors.textSecondary),
+                    onPressed: () {
+                      setState(() {
+                        selectedRouter = null;
+                        availableSwitches = [];
+                        selectedSwitches = [];
+                        selectedFans.clear();
+                        selectedSwitchTypes.clear();
+                      });
+                    },
+                  ),
+                ),
+              DropdownButtonFormField<RouterDetails>(
+                key: ValueKey(availableSwitches),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: const EdgeInsets.all(10),
+                  hintText: "Select Switches",
+                  hintStyle: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(fontWeight: FontWeight.bold),
+                  labelStyle: Theme.of(context).textTheme.titleSmall,
+                ),
+                initialValue: null,
+                onChanged: (selectedSwitch) {
+                  setState(() {
+                    if (selectedSwitch != null &&
+                        !selectedSwitches.contains(selectedSwitch)) {
+                      selectedSwitches.add(selectedSwitch);
+
+                      //  Pre-select all switch types for this switch
+                      selectedSwitchTypes[selectedSwitches.length - 1] =
+                          List<String>.from(selectedSwitch.switchTypes);
+
+                      //  Initialize fan name if present
+                      if (selectedSwitch.selectedFan?.isNotEmpty == true) {
+                        selectedFans[selectedSwitches.length - 1] =
+                            selectedSwitch.selectedFan!;
+                      }
+                    }
+                  });
+                },
+                items: availableSwitches
+                    .map((switchItem) => DropdownMenuItem(
+                          value: switchItem,
+                          child: Text(
+                              "${switchItem.routerName}_${switchItem.switchName}"),
+                        ))
+                    .toList(),
+              ),
+              Text("Selected Switches:",
+                  style: TextStyle(
+                      fontSize: width * 0.04, fontWeight: FontWeight.bold)),
+              ListView.separated(
                 separatorBuilder: (context, index) {
                   return const SizedBox(
                     height: 10,
                   );
                 },
                 itemCount: selectedSwitches.length,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   final switchItem = selectedSwitches[index];
                   final switchTypes = switchItem.switchTypes;
                   final selectedTypes = selectedSwitchTypes[index] ?? [];
                   return Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(10),
                     // margin: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
@@ -688,8 +741,8 @@ class _NewGroupInstallationPageState extends State<NewGroupInstallationPage> {
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomAppBar(

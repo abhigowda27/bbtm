@@ -44,6 +44,7 @@ dependencies:
   wifi_scan: ^0.4.1+2
   mobile_scanner: ^7.1.4
   app_settings: ^7.0.0
+  basic_utils: ^5.8.2
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -63,6 +64,9 @@ flutter:
     - assets/images/
     - assets/json/
     - assets/images/appliance/
+    - assets/cert/belbirdroot.crt
+    - assets/cert/belbirdrootin.crt
+
   fonts:
     - family: OpenSans
       fonts:

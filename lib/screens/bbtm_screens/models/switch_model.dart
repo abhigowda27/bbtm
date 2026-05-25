@@ -9,6 +9,7 @@ class SwitchDetails {
   late List<String> switchTypes;
   late String privatePin;
   bool? isAutoLock;
+  late int wattage;
 
   SwitchDetails(
       {required this.switchId,
@@ -20,7 +21,8 @@ class SwitchDetails {
       required this.switchPassword,
       required this.selectedFan,
       required this.iPAddress,
-      this.switchType});
+      this.switchType,
+      required this.wattage});
 
   factory SwitchDetails.fromJson(Map<String, dynamic> json) {
     return SwitchDetails(
@@ -34,6 +36,7 @@ class SwitchDetails {
       switchPassKey: json['SwitchPasskey'],
       switchType: json['switchType'],
       isAutoLock: json["isAutoLock"] ?? false,
+      wattage: json['wattage'] ?? 0,
     );
   }
 
@@ -49,6 +52,7 @@ class SwitchDetails {
     data['SwitchPasskey'] = switchPassKey;
     data['isAutoLock'] = isAutoLock;
     data['switchType'] = switchType;
+    data['wattage'] = wattage;
     return data;
   }
 }

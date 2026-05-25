@@ -86,11 +86,18 @@ class SwitchBloc extends Bloc<SwitchEvent, CommonState> {
     try {
       final payload = event.payload;
       Repository addSwitchRepository = Repository();
-      final deleteSwitchResponse =
+      final getSwitchStatusResponse =
           await addSwitchRepository.getSwitchStatus(payload);
 
-      emit(state.copyWith(
-          apiStatus: ApiResponse(response: deleteSwitchResponse)));
+      if (getSwitchStatusResponse['status'] == 'error') {
+        emit(state.copyWith(
+            apiStatus: ApiFailureState(
+                exception: getSwitchStatusResponse["message"] ??
+                    "Something Went Wrong")));
+      } else {
+        emit(state.copyWith(
+            apiStatus: ApiResponse(response: getSwitchStatusResponse)));
+      }
     } catch (e) {
       emit(state.copyWith(apiStatus: ApiFailureState(exception: e)));
     }

@@ -4,7 +4,6 @@ import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/widgets/custom/toast.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -24,36 +23,6 @@ class MacsPage extends StatefulWidget {
 
 class _MacsPageState extends State<MacsPage> {
   final StorageController _storageController = StorageController();
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
-  late NetworkService _networkService;
-  @override
-  void initState() {
-    super.initState();
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
-  }
-
-  @override
-  void dispose() {
-    connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
-  }
 
   Future<List<MacsDetails>> fetchContacts() async {
     return _storageController.readMacs();
@@ -71,29 +40,29 @@ class _MacsPageState extends State<MacsPage> {
           onPressed: () async {
             List<SwitchDetails> switches =
                 await _storageController.readSwitches();
-            String localConnectStatus = _connectionStatus;
+
+            final wifiName = NetworkService().wifiName;
+
             for (var element in switches) {
               debugPrint(element.switchSSID);
-              debugPrint(localConnectStatus);
-              if (localConnectStatus == element.switchSSID) {
-                debugPrint(element.switchSSID);
-                debugPrint(">>>>>>>>>>>>>");
-                debugPrint(">>>>>>>>>>>>>");
+              debugPrint(wifiName);
+
+              if (wifiName == element.switchSSID) {
                 Navigator.push(
-                    navigatorKey.currentContext!,
-                    MaterialPageRoute(
-                        builder: (context) => NewMacInstallationPage(
-                              switchDetails: element,
-                            )));
+                  navigatorKey.currentContext!,
+                  MaterialPageRoute(
+                    builder: (context) => NewMacInstallationPage(
+                      switchDetails: element,
+                    ),
+                  ),
+                );
                 return;
               }
             }
-            debugPrint(_connectionStatus);
+
             showFlutterToast("⚠️ You may not be connected to AP Mode.");
             AppSettings.openAppSettings(type: AppSettingsType.wifi);
-            return;
           }),
-      key: scaffoldKey,
       appBar: AppBar(title: const Text("MAC")),
       body: FutureBuilder(
           future: fetchContacts(),

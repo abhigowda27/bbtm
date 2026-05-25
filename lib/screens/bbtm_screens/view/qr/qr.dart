@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -24,37 +24,6 @@ class QRPage extends StatefulWidget {
 
 class _QRPageState extends State<QRPage> {
   GlobalKey globalKey = GlobalKey();
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
-  late NetworkService _networkService;
-
-  @override
-  void initState() {
-    super.initState();
-    debugPrint(widget.data);
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    _connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
-  }
-
-  @override
-  void dispose() {
-    _connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
-  }
 
   Future<void> convertQrCodeToImage(
       BuildContext context, String data, String name) async {
@@ -149,7 +118,7 @@ class _QRPageState extends State<QRPage> {
       await imgFile.writeAsBytes(pngBytes);
 
       // Get the RenderBox for iPad popover (sharePositionOrigin)
-      final box = context.findRenderObject() as RenderBox?;
+      final box = navigatorKey.currentContext!.findRenderObject() as RenderBox?;
       final shareOrigin = (box != null)
           ? box.localToGlobal(Offset.zero) & box.size
           : Rect.fromLTWH(0, 0, 1, 1); // fallback if box not ready
@@ -244,15 +213,20 @@ class _QRPageState extends State<QRPage> {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  '"$_connectionStatus"',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium!
-                      .copyWith(color: Theme.of(context).appColors.primary),
-                ),
+              ValueListenableBuilder<String?>(
+                valueListenable: NetworkService().wifiNameNotifier,
+                builder: (context, wifiName, _) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      '"${wifiName ?? "Unknown"}"',
+                      style:
+                          Theme.of(context).textTheme.headlineMedium!.copyWith(
+                                color: Theme.of(context).appColors.primary,
+                              ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(
                 height: 20,

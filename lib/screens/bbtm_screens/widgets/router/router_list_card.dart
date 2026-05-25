@@ -1,4 +1,5 @@
 import 'package:bbtml_new/theme/app_colors_extension.dart';
+import 'package:bbtml_new/widgets/common_snackbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -84,6 +85,8 @@ class _RouterListCardState extends State<RouterListCard> {
                     "lock_passkey": widget.routerDetails.switchPasskey,
                     "lock_cmd$slNo": "ON$slNo"
                   });
+                  commonSnackBar(
+                      context, "Device $slNo turned ON Successfully");
                   setState(() {
                     switchOn = true;
                   });
@@ -96,6 +99,8 @@ class _RouterListCardState extends State<RouterListCard> {
                     "lock_passkey": widget.routerDetails.switchPasskey,
                     "lock_cmd$slNo": "OFF$slNo"
                   });
+                  commonSnackBar(
+                      context, "Device $slNo turned OFF Successfully");
                   setState(() {
                     switchOn = false;
                   });

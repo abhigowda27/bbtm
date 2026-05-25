@@ -1,7 +1,20 @@
+import 'package:bbtml_new/main.dart';
+
 import '../api_providers/api_provider.dart';
 
 class Repository {
   final ApiProvider apiProvider = ApiProvider();
+
+  Future<void> _validateCertificate() async {
+    final isValid = await apiProvider
+        .validateAssetCertificate(navigatorKey.currentContext!);
+
+    if (!isValid) {
+      throw Exception(
+        "SSL Certificate Validation Failed",
+      );
+    }
+  }
 
   Future<dynamic> loginRepo(Map<String, dynamic> payload) async {
     return apiProvider.login(payload);
@@ -28,6 +41,8 @@ class Repository {
   }
 
   Future<dynamic> triggerSwitchRepo(Map<String, dynamic> payload) async {
+    await _validateCertificate();
+
     return apiProvider.triggerSwitch(payload);
   }
 
@@ -36,6 +51,8 @@ class Repository {
   }
 
   Future<dynamic> getSwitchStatus(Map<String, dynamic> payload) async {
+    await _validateCertificate();
+
     return apiProvider.getSwitchStatus(payload);
   }
 }

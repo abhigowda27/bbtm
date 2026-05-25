@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bbtml_new/common/common_services.dart';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/screens/bbtm_screens/models/appliance_model.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
@@ -52,6 +53,27 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
 
   List<Appliance> _appliances = [];
   Appliance? _selectedAppliance;
+  int? selectedValue;
+
+  Map<String, List<int>> applianceWattMap = {
+    "LIGHT": [20, 50, 80],
+    "FAN": [20, 50, 100],
+    "AC": [500, 1000, 1500, 2000],
+    "TV": [50, 100, 150, 200],
+    "FRIDGE": [100, 150, 200, 300],
+    "WM": [500, 1000, 1500],
+    "MW": [800, 1000, 1200, 1500],
+    "GEYSER": [1000, 1500, 2000],
+    "DOOR_LOCK": [5, 10, 20],
+    "DEFAULT": [20, 50, 100, 500, 1000, 1500, 2000],
+  };
+  List<int> getWattList() {
+    final code = _selectedAppliance?.code;
+    if (code != null && applianceWattMap.containsKey(code)) {
+      return applianceWattMap[code]!;
+    }
+    return applianceWattMap["DEFAULT"]!;
+  }
 
   Future<void> _loadAppliances() async {
     final jsonString =
@@ -59,11 +81,28 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
 
     final Map<String, dynamic> jsonData = json.decode(jsonString);
 
-    setState(() {
-      _appliances = (jsonData['appliances'] as List)
-          .map((e) => Appliance.fromJson(e))
-          .toList();
-    });
+    _appliances = (jsonData['appliances'] as List)
+        .map((e) => Appliance.fromJson(e))
+        .toList();
+
+    // ✅ Prefill appliance
+    if (widget.switchDetails.switchType != null) {
+      _selectedAppliance = _appliances.firstWhere(
+        (a) => a.code == widget.switchDetails.switchType,
+        orElse: () => _appliances.first,
+      );
+    }
+
+    final savedWatt = widget.switchDetails.wattage;
+    final validWatts = getWattList();
+
+    if (validWatts.contains(savedWatt)) {
+      selectedValue = savedWatt;
+    } else {
+      selectedValue = null;
+    }
+
+    setState(() {});
   }
 
   bool _showPassword = false;
@@ -184,6 +223,37 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   },
                   controller: _passKey,
                   hintText: "New Passkey",
+                ),
+                richTxt(text: "Select watt range"),
+                DropdownButtonFormField<int>(
+                  initialValue: selectedValue, // ✅ reactive binding
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  hint: Text(
+                    _selectedAppliance == null
+                        ? "Select appliance first"
+                        : "Select Wattage",
+                  ),
+                  items: getWattList().map((watt) {
+                    return DropdownMenuItem<int>(
+                      value: watt,
+                      child: Text(CommonServices().formatWatt(watt)),
+                    );
+                  }).toList(),
+                  onChanged: _selectedAppliance == null
+                      ? null
+                      : (value) {
+                          setState(() {
+                            selectedValue = value;
+                          });
+                        },
+                  validator: (value) {
+                    if (value == null) return "Please select wattage";
+                    return null;
+                  },
                 ),
                 richTxt(text: "Select Switch Type"),
                 GestureDetector(
@@ -341,17 +411,17 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                   debugPrint(_selectedAppliance?.code);
                   if (formKey.currentState!.validate()) {
                     SwitchDetails switchDetails1 = SwitchDetails(
-                      privatePin: _privatePin.text,
-                      switchId: widget.switchDetails.switchId,
-                      switchSSID: _ssid.text,
-                      switchPassKey: _passKey.text,
-                      switchPassword: _password.text,
-                      iPAddress: widget.switchDetails.iPAddress,
-                      switchType: _selectedAppliance?.code,
-                      switchTypes:
-                          _switchTypeControllers.map((c) => c.text).toList(),
-                      selectedFan: _selectedFanController.text,
-                    );
+                        privatePin: _privatePin.text,
+                        switchId: widget.switchDetails.switchId,
+                        switchSSID: _ssid.text,
+                        switchPassKey: _passKey.text,
+                        switchPassword: _password.text,
+                        iPAddress: widget.switchDetails.iPAddress,
+                        switchType: _selectedAppliance?.code,
+                        switchTypes:
+                            _switchTypeControllers.map((c) => c.text).toList(),
+                        selectedFan: _selectedFanController.text,
+                        wattage: selectedValue ?? widget.switchDetails.wattage);
 
                     try {
                       setState(() {
@@ -468,8 +538,10 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                               width: 2,
                               color: _selectedAppliance?.id == appliance.id
                                   ? Theme.of(context).appColors.buttonBackground
-                                  : Theme.of(context).appColors.grey
-                                .withValues(alpha: 0.5),
+                                  : Theme.of(context)
+                                      .appColors
+                                      .grey
+                                      .withValues(alpha: 0.5),
                             ),
                           ),
                           leading: Image.asset(
@@ -491,6 +563,7 @@ class _UpdateSwitchPageState extends State<UpdatePage> {
                           onTap: () {
                             setState(() {
                               _selectedAppliance = appliance;
+                              selectedValue = null; // reset watt
                             });
                             Navigator.pop(context);
                           },

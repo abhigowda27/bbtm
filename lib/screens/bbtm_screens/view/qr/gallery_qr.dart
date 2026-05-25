@@ -5,7 +5,6 @@ import 'package:app_settings/app_settings.dart';
 import 'package:bbtml_new/screens/bbtm_screens/controllers/wifi.dart';
 import 'package:bbtml_new/screens/bbtm_screens/widgets/custom/toast.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,58 +21,21 @@ class GalleryQRPage extends StatefulWidget {
   State<GalleryQRPage> createState() => _GalleryQRPageState();
 }
 
-class _GalleryQRPageState extends State<GalleryQRPage>
-    with WidgetsBindingObserver {
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
-  late NetworkService _networkService;
-
+class _GalleryQRPageState extends State<GalleryQRPage> {
   SwitchDetails details = SwitchDetails(
-    switchId: "Unknown",
-    switchSSID: "Unknown",
-    switchPassword: "Unknown",
-    selectedFan: "",
-    switchTypes: [],
-    privatePin: "1234",
-    iPAddress: "Unknown",
-  );
+      switchId: "Unknown",
+      switchSSID: "Unknown",
+      switchPassword: "Unknown",
+      selectedFan: "",
+      switchTypes: [],
+      privatePin: "1234",
+      iPAddress: "Unknown",
+      wattage: 0);
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
     scanQR();
-  }
-
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.resumed) {
-      _initNetworkInfo();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-
-    connectivitySubscription?.cancel();
-    super.dispose();
   }
 
   // Future<void> scanQR() async {
@@ -136,6 +98,7 @@ class _GalleryQRPageState extends State<GalleryQRPage>
 
       if (capture == null || capture.barcodes.isEmpty) {
         debugPrint("QR code not found in the selected image.");
+        showFlutterToast("❌ No QR code found in the selected image");
         return;
       }
 
@@ -143,6 +106,8 @@ class _GalleryQRPageState extends State<GalleryQRPage>
 
       if (barcodeScanRes == null || barcodeScanRes.isEmpty) {
         debugPrint("QR value is empty.");
+        showFlutterToast("❌ Invalid QR code");
+
         return;
       }
 
@@ -155,20 +120,21 @@ class _GalleryQRPageState extends State<GalleryQRPage>
 
       setState(() {
         details = SwitchDetails(
-          switchId: jsonR['SwitchId'],
-          privatePin: jsonR['privatePin'],
-          switchSSID: jsonR['SwitchSSID'],
-          switchPassword: jsonR['SwitchPassword'],
-          iPAddress: jsonR['IPAddress'],
-          switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
-              .map((e) => e.toString())
-              .toList(),
-          switchPassKey: jsonR['SwitchPasskey'],
-          selectedFan: jsonR['SelectedFan'],
-        );
+            switchId: jsonR['SwitchId'],
+            privatePin: jsonR['privatePin'],
+            switchSSID: jsonR['SwitchSSID'],
+            switchPassword: jsonR['SwitchPassword'],
+            iPAddress: jsonR['IPAddress'],
+            switchTypes: (jsonR['SwitchTypes'] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList(),
+            switchPassKey: jsonR['SwitchPasskey'],
+            selectedFan: jsonR['SelectedFan'],
+            wattage: jsonR['wattage'] ?? 0);
       });
     } catch (e) {
       debugPrint("Failed to scan QR: $e");
+      showFlutterToast("❌ Invalid QR format. Please select a valid QR image");
     } finally {
       controller.dispose();
     }
@@ -262,55 +228,52 @@ class _GalleryQRPageState extends State<GalleryQRPage>
                               .copyWith(fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          '"$_connectionStatus"',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(
-                                color: Theme.of(context).appColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
+                        ValueListenableBuilder<String?>(
+                          valueListenable: NetworkService().wifiNameNotifier,
+                          builder: (context, wifiName, _) {
+                            return Text(
+                              '"${wifiName ?? "Unknown"}"',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium!
+                                  .copyWith(
+                                    color: Theme.of(context).appColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              textAlign: TextAlign.center,
+                            );
+                          },
+                        )
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
 
-                  /// OPEN WIFI SETTINGS
-                  CustomButton(
-                    text: "Open WiFi List",
-                    icon: Icons.wifi_tethering,
-                    onPressed: () {
-                      AppSettings.openAppSettings(type: AppSettingsType.wifi);
-                    },
-                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: CustomButton(
+                        icon: FontAwesomeIcons.circleArrowRight,
+                        text: "Proceed",
+                        onPressed: () {
+                          final wifiName = NetworkService().wifiName;
 
-                  CustomButton(
-                    icon: FontAwesomeIcons.circleArrowRight,
-                    text: "Proceed",
-                    onPressed: () {
-                      details.switchSSID = "Bbtlock1";
-                      if (!_connectionStatus.contains(details.switchSSID) &&
-                          !details.switchSSID.contains(_connectionStatus)) {
-                        showFlutterToast(
-                            "⚠️ Action required: Connect to WiFi '${details.switchSSID}' with the given password and proceed again.");
-                        AppSettings.openAppSettings(type: AppSettingsType.wifi);
+                          if (!wifiName.contains(details.switchSSID) &&
+                              !details.switchSSID.contains(wifiName)) {
+                            showFlutterToast(
+                                "⚠️ Action required: Connect to WiFi '${details.switchSSID}' with the given password and proceed again.");
+                            AppSettings.openAppSettings(
+                                type: AppSettingsType.wifi);
+                            return;
+                          }
 
-                        return;
-                      }
-
-                      // Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddNewSwitchesPage(
-                            switchDetails: details,
-                          ),
-                        ),
-                      );
-                    },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddNewSwitchesPage(
+                                switchDetails: details,
+                              ),
+                            ),
+                          );
+                        }),
                   ),
                 ],
               ));

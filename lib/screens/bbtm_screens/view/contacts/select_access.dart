@@ -119,10 +119,13 @@ class _AccessRequestPageState extends State<AccessRequestPage> {
                         endDateTime: DateTime.now(),
                         name: widget.name));
                   }
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const TabsPage()));
+                  Navigator.pushAndRemoveUntil<dynamic>(
+                    context,
+                    MaterialPageRoute<dynamic>(
+                      builder: (BuildContext context) => const TabsPage(),
+                    ),
+                    (route) => false,
+                  );
                 },
                 child: Text(
                   "Submit",

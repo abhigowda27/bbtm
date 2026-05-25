@@ -3,10 +3,7 @@ import 'dart:async';
 import 'package:bbtml_new/main.dart';
 import 'package:bbtml_new/theme/app_colors_extension.dart';
 import 'package:bbtml_new/widgets/mandatory_text.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:wifi_iot/wifi_iot.dart';
-import 'package:wifi_scan/wifi_scan.dart';
 
 import '../../../../constants.dart';
 import '../../../../controllers/apis.dart';
@@ -40,25 +37,16 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
   String? selectedFan;
   String? switchType;
   String? passKey;
+  int? wattage;
   late List<String> switchList;
   final TextEditingController _ssid = TextEditingController();
   final TextEditingController _password = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? connectivitySubscription;
-  late NetworkService _networkService;
-
   @override
   void initState() {
     super.initState();
     _ssid.text = widget.selectedWifiName;
-    _networkService = NetworkService();
-    _initNetworkInfo();
-    connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
     if (widget.isFromSwitch) {
       setState(() {
         switchID = widget.switchDetails!.switchId;
@@ -67,17 +55,22 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
         switchList = widget.switchDetails!.switchTypes;
         selectedFan = widget.switchDetails!.selectedFan;
         switchType = widget.switchDetails!.switchType;
+        wattage = widget.switchDetails!.wattage;
       });
     } else {
       getSwitchDetails();
     }
   }
 
+  final networkService = NetworkService();
+
   Future<void> getSwitchDetails() async {
+    final currentWifi = networkService.wifiName ;
+
     List<SwitchDetails> switches = await _storage.readSwitches();
     for (var element in switches) {
-      if (_connectionStatus.contains(element.switchSSID) ||
-          element.switchSSID.contains(_connectionStatus)) {
+      if (currentWifi.contains(element.switchSSID) ||
+          element.switchSSID.contains(currentWifi)) {
         setState(() {
           passKey = element.switchPassKey!;
           switchID = element.switchId;
@@ -85,164 +78,16 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
           switchList = element.switchTypes;
           selectedFan = element.selectedFan;
           switchType = element.switchType;
+          wattage = element.wattage;
         });
         break;
       }
     }
   }
 
-  void connectToWiFi() async {
-    debugPrint("========== WIFI CONNECTION START ==========");
-
-    try {
-      // 1. Check WiFi Enabled
-      bool isEnabled = await WiFiForIoTPlugin.isEnabled();
-      debugPrint("WiFi Enabled: $isEnabled");
-
-      if (!isEnabled) {
-        debugPrint("WiFi is OFF. Trying to enable...");
-        dynamic enabled = await WiFiForIoTPlugin.setEnabled(
-            true); // Note: Returns dynamic (bool on Android)
-        debugPrint("WiFi enabling result: $enabled");
-      }
-
-      // 2. Check Current Connection
-      String? currentSSID = await WiFiForIoTPlugin.getSSID();
-      debugPrint("Current Connected SSID: $currentSSID");
-
-      // Normalize target
-      String targetSSID = _ssid.text.trim().toLowerCase();
-      String? password = _password.text.trim();
-      if (password.isEmpty) {
-        debugPrint("⚠️ No password provided—ensure network is open!");
-      } else {
-        debugPrint(
-            "Password: '$password' (length: ${password.length} – verify exact match, e.g., no extra '0')");
-      }
-
-      // Early exit if already connected
-      if (currentSSID?.toLowerCase() == targetSSID) {
-        debugPrint("Already connected to target WiFi: $targetSSID");
-        return;
-      }
-
-      // 3. Scan & Validate Target
-      List<WiFiAccessPoint> networks =
-          await WiFiScan.instance.getScannedResults();
-      debugPrint("Available Networks (${networks.length}):");
-      bool targetFound = false;
-      for (var net in networks) {
-        debugPrint(
-            " → SSID: ${net.ssid} | BSSID: ${net.bssid} | Level: ${net.level}");
-        if (net.ssid.toLowerCase() == targetSSID) {
-          targetFound = true;
-        }
-      }
-      if (!targetFound) {
-        debugPrint(
-            "❌ Target SSID '$targetSSID' not found in scan. Check spelling, range, or if hidden.");
-        return;
-      }
-
-      // // 4. Force Disconnect from Current (Key for switch)
-      // if (currentSSID != null && currentSSID.toLowerCase() != targetSSID) {
-      //   debugPrint("Disconnecting from current SSID: $currentSSID");
-      //   bool disconnected = await WiFiForIoTPlugin.disconnect();
-      //   debugPrint("Disconnect result: $disconnected");
-      //   if (disconnected) {
-      //     await Future.delayed(const Duration(seconds: 5));
-      //     currentSSID = await WiFiForIoTPlugin.getSSID();
-      //     debugPrint("SSID after disconnect wait: $currentSSID (should be null)");
-      //   } else {
-      //     debugPrint("❌ Disconnect failed—ensure CHANGE_WIFI_STATE permission.");
-      //     return;
-      //   }
-      // }
-
-      // 5. Security Type
-      NetworkSecurity securityType =
-          password.isEmpty ? NetworkSecurity.NONE : NetworkSecurity.WPA;
-
-      // 6. Connect
-      debugPrint("Attempting connection to SSID: $targetSSID");
-      debugPrint("Using password: $password");
-
-      bool? result = await WiFiForIoTPlugin.connect(
-        targetSSID,
-        password: password,
-        security: securityType,
-        withInternet: false,
-        timeoutInSeconds: 30, // Plugin default, but explicit
-      );
-      debugPrint("connect() returned: $result");
-
-      if (result != true) {
-        debugPrint("❌ Connection initiation failed.");
-        return;
-      }
-
-      // 7. Force WiFi Usage
-      bool forced = await WiFiForIoTPlugin.forceWifiUsage(true);
-      debugPrint("Forced WiFi usage: $forced");
-
-      // 8. Poll for Connection (Enhanced: 45s total, 1s intervals post-connect)
-      int maxWaitSeconds = 45;
-      int intervalSeconds = 1;
-      bool isConnected = false;
-      String? newSSID;
-
-      // Initial post-connect wait (3s)
-      await Future.delayed(const Duration(seconds: 3));
-      debugPrint("Starting polling...");
-
-      for (int i = 0; i < maxWaitSeconds; i += intervalSeconds) {
-        newSSID = await WiFiForIoTPlugin.getSSID();
-        bool connected = await WiFiForIoTPlugin.isConnected();
-        debugPrint(
-            "After ${i + intervalSeconds}s: SSID='$newSSID' | isConnected=$connected");
-
-        if (newSSID?.toLowerCase() == targetSSID && connected) {
-          isConnected = true;
-          break;
-        }
-        await Future.delayed(Duration(seconds: intervalSeconds));
-      }
-
-      debugPrint(
-          "Final: Connected to target WiFi: $isConnected (SSID: $newSSID)");
-      if (isConnected) {
-        debugPrint("✅ Success! Connected to $targetSSID.");
-        // Optional: Register for persistence if needed
-        // await WiFiForIoTPlugin.registerWifiNetwork(targetSSID, password: password, security: securityType);
-      } else {
-        debugPrint(
-            "❌ Failed. Common causes: Wrong password, approval prompt dismissed, or OS band preference.");
-        // Cleanup
-        await WiFiForIoTPlugin.disconnect();
-        await WiFiForIoTPlugin.removeWifiNetwork(targetSSID);
-      }
-    } catch (e, stack) {
-      debugPrint("❌ ERROR while connecting to WiFi: $e");
-      debugPrint("STACK TRACE: $stack");
-    }
-
-    debugPrint("========== WIFI CONNECTION END ==========");
-  }
-
   @override
   void dispose() {
-    connectivitySubscription?.cancel();
     super.dispose();
-  }
-
-  String _connectionStatus = 'Unknown';
-  Future<void> _updateConnectionStatus(
-          List<ConnectivityResult> results) async =>
-      _initNetworkInfo();
-
-  Future<void> _initNetworkInfo() async {
-    String? wifiName = await _networkService.initNetworkInfo();
-    setState(() => _connectionStatus = wifiName ?? "Unknown");
   }
 
   bool loading = false;
@@ -250,6 +95,8 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final height = screenSize.height;
+    final currentWifi = networkService.wifiName;
+
     return Scaffold(
         appBar: AppBar(title: const Text("Add Router")),
         body: Form(
@@ -339,9 +186,8 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                 }
                                 debugPrint("inside submit $passKey");
                                 if (passKey == null) {
-                                  showToast(navigatorKey
-                                      .currentContext!,
-                                      "No switch found with switch $_connectionStatus");
+                                  showToast(navigatorKey.currentContext!,
+                                      "No switch found with switch $currentWifi");
                                   setState(() {
                                     loading = false;
                                   });
@@ -400,8 +246,9 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                                     res['IPAddress'];
                                                 if (ipAddress
                                                     .contains("0.0.0.0")) {
-                                                  showToast(navigatorKey
-                                                      .currentContext!,
+                                                  showToast(
+                                                      navigatorKey
+                                                          .currentContext!,
                                                       "Unable to connect to IP. Try again.");
                                                   return;
                                                 }
@@ -419,13 +266,13 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                                             res['IPAddress'],
                                                         switchTypes: switchList,
                                                         selectedFan:
-                                                            selectedFan);
+                                                            selectedFan,
+                                                        wattage: wattage ?? 0);
                                                 await _storage.updateRouter(
                                                     routerDetails);
                                                 Navigator.pushAndRemoveUntil<
                                                     dynamic>(
-                                                  navigatorKey
-                                                      .currentContext!,
+                                                  navigatorKey.currentContext!,
                                                   MaterialPageRoute<dynamic>(
                                                     builder: (BuildContext
                                                             context) =>
@@ -437,8 +284,10 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                                 debugPrint(
                                                     "Error inside updating");
                                                 debugPrint("$e");
-                                                showToast(navigatorKey
-                                                    .currentContext!, "Error");
+                                                showToast(
+                                                    navigatorKey
+                                                        .currentContext!,
+                                                    "Error");
                                               }
                                             },
                                             child: Text(
@@ -455,9 +304,8 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                   );
                                   return;
                                 } else {
-                                  showToast(navigatorKey
-                                      .currentContext!,
-                                      "You are connected to $_connectionStatus");
+                                  showToast(navigatorKey.currentContext!,
+                                      "You are connected to $currentWifi");
                                   await ApiConnect.hitApiGet(
                                     "${Constants.routerIP}/",
                                   );
@@ -469,8 +317,7 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                   });
                                   String iPAddress = res['IPAddress'];
                                   if (iPAddress.contains("0.0.0.0")) {
-                                    showToast(navigatorKey
-                                        .currentContext!,
+                                    showToast(navigatorKey.currentContext!,
                                         "Unable to connect IP. Try Again., ${iPAddress.contains("0.0.0.0")}");
                                     setState(() {
                                       loading = false;
@@ -481,8 +328,7 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                     loading = false;
                                   });
                                   if (res["MAC"] == null) {
-                                    showToast(navigatorKey
-                                        .currentContext!,
+                                    showToast(navigatorKey.currentContext!,
                                         "MAC id is Null please, check with operator");
                                   }
                                   RouterDetails routerDetails = RouterDetails(
@@ -495,7 +341,8 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                       iPAddress: res['IPAddress'],
                                       deviceMacId: res['MAC'],
                                       switchTypes: switchList,
-                                      selectedFan: selectedFan);
+                                      selectedFan: selectedFan,
+                                      wattage: wattage ?? 0);
                                   setState(() {
                                     loading = true;
                                   });
@@ -504,8 +351,7 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                     loading = false;
                                   });
                                   Navigator.pushAndRemoveUntil<dynamic>(
-                                    navigatorKey
-                                        .currentContext!,
+                                    navigatorKey.currentContext!,
                                     MaterialPageRoute<dynamic>(
                                       builder: (BuildContext context) =>
                                           const TabsPage(),
@@ -515,9 +361,8 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                                 }
                               } catch (e) {
                                 debugPrint(e.toString());
-                                showToast(
-                                    navigatorKey
-                                        .currentContext!, "Please connect to correct wifi");
+                                showToast(navigatorKey.currentContext!,
+                                    "Please connect to correct wifi");
                                 setState(() {
                                   loading = false;
                                 });

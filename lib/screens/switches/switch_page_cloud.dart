@@ -254,6 +254,7 @@ class _SwitchCloudPageState extends State<SwitchCloudPage> {
         // 💡 Device Cards List
         Expanded(
           child: ListView.separated(
+            physics: BouncingScrollPhysics(),
             padding: const EdgeInsets.all(16),
             shrinkWrap: true,
             itemCount: _deviceList.length,
