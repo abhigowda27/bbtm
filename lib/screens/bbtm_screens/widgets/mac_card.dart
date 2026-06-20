@@ -150,7 +150,8 @@ class _MacCardState extends State<MacCard> {
                         onPressed: () {
                           Clipboard.setData(
                               ClipboardData(text: widget.macsDetails.id));
-                          showToast(context, "Mac Id copied");
+                          showToast(context,
+                              "Copied to clipboard. Clipboard contents may be visible to other apps.");
                         },
                         icon: Icon(Icons.copy,
                             color: Theme.of(context).appColors.textPrimary),

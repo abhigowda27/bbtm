@@ -111,10 +111,14 @@ class _QRPageState extends State<QRPage> {
       ByteData? byteData =
           await finalImage.toByteData(format: ui.ImageByteFormat.png);
       Uint8List pngBytes = byteData!.buffer.asUint8List();
+      final appDir = await getApplicationSupportDirectory();
 
-      // Save to temp file
-      final directory = await getTemporaryDirectory();
-      File imgFile = File("${directory.path}/qrCode.png");
+      final qrDir = Directory('${appDir.path}/qr');
+      if (!await qrDir.exists()) {
+        await qrDir.create(recursive: true);
+      }
+
+      final imgFile = File('${qrDir.path}/qrCode.png');
       await imgFile.writeAsBytes(pngBytes);
 
       // Get the RenderBox for iPad popover (sharePositionOrigin)

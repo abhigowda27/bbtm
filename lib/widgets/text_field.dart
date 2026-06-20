@@ -11,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String query)? onChanged;
   final Icon? prefixIcon;
+  final bool enableInteractiveSelection;
 
   const CustomTextField({
     super.key,
@@ -23,6 +24,7 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.onChanged,
     this.prefixIcon,
+    this.enableInteractiveSelection = true,
   });
 
   @override
@@ -39,6 +41,7 @@ class CustomTextField extends StatelessWidget {
       onChanged: onChanged,
       keyboardType: keyboardType,
       contextMenuBuilder: null,
+      enableInteractiveSelection: enableInteractiveSelection,
       style: Theme.of(context).textTheme.titleSmall,
       decoration: InputDecoration(
           contentPadding: const EdgeInsets.all(10),

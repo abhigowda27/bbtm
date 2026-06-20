@@ -42,6 +42,7 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
   final TextEditingController _ssid = TextEditingController();
   final TextEditingController _password = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -65,7 +66,7 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
   final networkService = NetworkService();
 
   Future<void> getSwitchDetails() async {
-    final currentWifi = networkService.wifiName ;
+    final currentWifi = networkService.wifiName;
 
     List<SwitchDetails> switches = await _storage.readSwitches();
     for (var element in switches) {
@@ -121,13 +122,22 @@ class _AddNewRouterPageState extends State<AddNewRouterPage> {
                 richTxt(text: "Router Password"),
                 CustomTextField(
                   controller: _password,
+                  obscureText: _obscurePassword, // Use variable
+                  enableInteractiveSelection: false,
                   validator: (value) {
                     if (value!.length <= 7) {
                       return "Router Password cannot be less than 8 letters";
                     }
                     return null;
                   },
-                  hintText: "New Router Password",
+                  hintText: "Router Password",
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
                 ),
                 // ElevatedButton(
                 //     onPressed: connectToWiFi, child: Text(";lkjhgf")),

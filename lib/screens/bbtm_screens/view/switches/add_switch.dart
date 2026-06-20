@@ -36,6 +36,10 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
   final TextEditingController _fanNameController = TextEditingController();
   String? _selectedSwitchType;
   String? selectedFan;
+  bool _obscurePassword = true;
+  bool _obscurePin = true;
+  bool _obscurePassKey = true;
+
   final List<String> _switchesWithFan = [
     'Switch 1',
     'Switch 2',
@@ -202,6 +206,8 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
               richTxt(text: "Switch Password"),
               CustomTextField(
                 controller: _password,
+                obscureText: _obscurePassword, // Use variable
+                enableInteractiveSelection: false,
                 validator: (value) {
                   if (value!.length <= 7) {
                     return "Switch Password cannot be less than 8 letters";
@@ -209,11 +215,20 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                   return null;
                 },
                 hintText: "New Password",
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword
+                      ? Icons.visibility_off
+                      : Icons.visibility),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
               ),
               richTxt(text: "PIN"),
               CustomTextField(
                 maxLength: 4,
                 controller: _privatePin,
+                obscureText: _obscurePin, // Use variable
+                enableInteractiveSelection: false,
                 validator: (value) {
                   if (value!.length <= 3) {
                     return "Switch Pin cannot be less than 4 letters";
@@ -221,6 +236,11 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                   return null;
                 },
                 hintText: "New Pin",
+                suffixIcon: IconButton(
+                  icon: Icon(
+                      _obscurePin ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                ),
               ),
               richTxt(text: "Switch Passkey"),
               CustomTextField(
@@ -233,8 +253,17 @@ class _AddNewSwitchesPageState extends State<AddNewSwitchesPage> {
                   }
                   return null;
                 },
+                obscureText: _obscurePassKey, // Use variable
+                enableInteractiveSelection: false,
                 controller: _passKey,
                 hintText: "New Passkey",
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassKey
+                      ? Icons.visibility_off
+                      : Icons.visibility),
+                  onPressed: () =>
+                      setState(() => _obscurePassKey = !_obscurePassKey),
+                ),
               ),
               richTxt(text: "Select watt range"),
               DropdownMenuFormField<int>(
